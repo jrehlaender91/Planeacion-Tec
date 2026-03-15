@@ -305,7 +305,7 @@ select[multiple] { height: 72px; }
     <!-- ══ MATERIAS ══ -->
     <div class="panel active" id="panel-materias">
       <div class="page-title">Materias</div>
-      <div class="page-subtitle">Registra cada materia con sus unidades crédito, horas clase y número de alumn@s.</div>
+      <div class="page-subtitle">Registra cada materia con sus UDC, horas clase y número de alumn@s.</div>
       <div class="card">
         <div class="card-title">Nueva materia</div>
         <div class="form-grid g2">
@@ -320,7 +320,7 @@ select[multiple] { height: 72px; }
         </div>
         <div class="form-grid g5">
           <div class="form-group">
-            <label>Créditos</label>
+            <label>UDC</label>
             <input type="number" id="mat-credits" value="6" min="1" max="60" oninput="syncHours()">
           </div>
           <div class="form-group">
@@ -346,7 +346,7 @@ select[multiple] { height: 72px; }
             </select>
           </div>
         </div>
-        <div class="sync-hint" id="credits-hint">6 créditos → 2 hrs clase/sem &nbsp;·&nbsp; Relación: 1 hr = 3 créditos</div>
+        <div class="sync-hint" id="credits-hint">6 UDC → 2 hrs clase/sem &nbsp;·&nbsp; Relación: 1 hr = 3 UDC</div>
         <div class="btn-row" style="justify-content:space-between;margin-top:8px;">
           <div style="display:flex;gap:8px;">
             <button class="btn btn-sm" onclick="downloadTemplate('materias')">↓ Plantilla CSV</button>
@@ -355,7 +355,10 @@ select[multiple] { height: 72px; }
               <input type="file" accept=".csv" style="display:none" onchange="importCSV('materias',this)">
             </label>
           </div>
-          <button class="btn btn-primary" onclick="addMateria()">+ Agregar materia</button>
+          <div style="display:flex;gap:8px;">
+            <button class="btn" id="mat-cancel-btn" onclick="cancelEditMateria()" style="display:none;">✕ Cancelar</button>
+            <button class="btn btn-primary" id="mat-add-btn" onclick="addMateria()">+ Agregar materia</button>
+          </div>
         </div>
         <div id="import-result-materias" style="margin-top:6px;"></div>
       </div>
@@ -363,7 +366,7 @@ select[multiple] { height: 72px; }
         <div class="card-title">Materias registradas</div>
         <div class="tbl-wrap">
           <table class="tbl">
-            <thead><tr><th>Clave</th><th>Nombre</th><th>Créditos</th><th>Hrs/sem</th><th>Alumn@s</th><th>Semestre</th><th>Tipo</th><th></th></tr></thead>
+            <thead><tr><th>Clave</th><th>Nombre</th><th>UDC</th><th>Hrs/sem</th><th>Alumn@s</th><th>Semestre</th><th>Tipo</th><th></th></tr></thead>
             <tbody id="mat-body"><tr><td colspan="8"><div class="empty"><div class="empty-icon">📚</div>Sin materias aún</div></td></tr></tbody>
           </table>
         </div>
@@ -531,7 +534,7 @@ select[multiple] { height: 72px; }
     <!-- ══ CONFIG ══ -->
     <div class="panel" id="panel-config">
       <div class="page-title">Configuración</div>
-      <div class="page-subtitle">Define el marco horario del semestre y la relación créditos–horas.</div>
+      <div class="page-subtitle">Define el marco horario del semestre y la relación UDC–horas.</div>
       <div class="card">
         <div class="card-title">Horario del semestre</div>
         <div class="form-grid g4">
@@ -564,12 +567,12 @@ select[multiple] { height: 72px; }
         </div>
       </div>
       <div class="card">
-        <div class="card-title">Relación créditos → horas</div>
+        <div class="card-title">Relación UDC → horas</div>
         <div class="form-grid g2">
           <div class="form-group">
-            <label>Créditos por hora clase</label>
+            <label>UDC por hora clase</label>
             <input type="number" id="cfg-cred-per-hr" value="3" min="1" max="10" oninput="saveCfg()">
-            <span class="hint">Ej: 3 → 1 hr clase = 3 créditos</span>
+            <span class="hint">Ej: 3 → 1 hr clase = 3 UDC</span>
           </div>
           <div class="form-group">
             <label>Máx. clases/profesor/día</label>
@@ -630,7 +633,7 @@ select[multiple] { height: 72px; }
     <!-- ══ CARGA DOCENTE ══ -->
     <div class="panel" id="panel-carga">
       <div class="page-title">Carga docente</div>
-      <div class="page-subtitle">Unidades crédito y horas clase por profesor, con validación de límites contractuales.</div>
+      <div class="page-subtitle">UDC y horas clase por profesor, con validación de límites contractuales.</div>
       <div id="carga-view"><div class="empty"><div class="empty-icon">📊</div>Genera el horario primero.</div></div>
     </div>
 
@@ -642,6 +645,7 @@ select[multiple] { height: 72px; }
 // STATE
 // ══════════════════════════════════════════════
 let materias = [], profesores = [], espacios = [], constraints = [], blocks = [], schedule = [];
+let editingMatId = null;
 const COLORS = ['#b5d4f4','#9fe1cb','#f5c4b3','#f4c0d1','#fac775','#c0dd97','#afa9ec','#f0997b','#86c9c4','#f5dba0'];
 const TCOLORS = ['#0c447c','#085041','#712b13','#72243e','#633806','#3b6d11','#3c3489','#993c1d','#0d4440','#6b4800'];
 
@@ -710,7 +714,7 @@ function updateHint() {
   const cr = +document.getElementById('mat-credits').value;
   const hrs = +document.getElementById('mat-classhours').value;
   const cph = getCredPerHr();
-  document.getElementById('credits-hint').textContent = `${cr} créditos → ${hrs} hrs clase/sem  ·  Relación: 1 hr = ${cph} créditos`;
+  document.getElementById('credits-hint').textContent = `${cr} UDC → ${hrs} hrs clase/sem  ·  Relación: 1 hr = ${cph} UDC`;
 }
 const contractDefaults = { Planta:{maxcredits:14,maxhours:12}, Cátedra:{maxcredits:10,maxhours:6} };
 function updateMaxLoad() {
@@ -726,8 +730,7 @@ function saveCfg() { updateHint(); }
 function addMateria() {
   const name = document.getElementById('mat-name').value.trim();
   if(!name) return alert('Ingresa el nombre de la materia');
-  materias.push({
-    id: Date.now(),
+  const data = {
     clave:      document.getElementById('mat-clave').value.trim(),
     name,
     credits:    +document.getElementById('mat-credits').value,
@@ -735,10 +738,42 @@ function addMateria() {
     students:   +document.getElementById('mat-students').value,
     semester:   document.getElementById('mat-semester').value,
     type:       document.getElementById('mat-type').value
-  });
+  };
+  if (editingMatId !== null) {
+    const idx = materias.findIndex(m => m.id === editingMatId);
+    if (idx !== -1) materias[idx] = { ...materias[idx], ...data };
+    editingMatId = null;
+    document.getElementById('mat-add-btn').textContent = '+ Agregar materia';
+    document.getElementById('mat-cancel-btn').style.display = 'none';
+  } else {
+    materias.push({ id: Date.now(), ...data });
+  }
   document.getElementById('mat-clave').value = '';
   document.getElementById('mat-name').value = '';
   renderMaterias(); updateBadges(); save();
+}
+function editMateria(id) {
+  const m = materias.find(m => m.id === id);
+  if (!m) return;
+  document.getElementById('mat-clave').value     = m.clave || '';
+  document.getElementById('mat-name').value      = m.name;
+  document.getElementById('mat-credits').value   = m.credits;
+  document.getElementById('mat-classhours').value= m.classhours;
+  document.getElementById('mat-students').value  = m.students;
+  document.getElementById('mat-semester').value  = m.semester;
+  document.getElementById('mat-type').value      = m.type;
+  editingMatId = id;
+  updateHint();
+  document.getElementById('mat-add-btn').textContent = '✓ Actualizar materia';
+  document.getElementById('mat-cancel-btn').style.display = '';
+  document.querySelector('#panel-materias .card').scrollIntoView({ behavior: 'smooth' });
+}
+function cancelEditMateria() {
+  editingMatId = null;
+  document.getElementById('mat-clave').value = '';
+  document.getElementById('mat-name').value  = '';
+  document.getElementById('mat-add-btn').textContent = '+ Agregar materia';
+  document.getElementById('mat-cancel-btn').style.display = 'none';
 }
 function deleteMat(id) {
   materias = materias.filter(m=>m.id!==id);
@@ -751,11 +786,11 @@ function renderMaterias() {
   body.innerHTML = materias.map(m=>`<tr>
     <td style="color:var(--text-faint);font-size:11px;">${m.clave||'—'}</td>
     <td style="font-weight:500">${m.name}</td>
-    <td><span class="badge badge-info">${m.credits} cr</span></td>
+    <td><span class="badge badge-info">${m.credits} UDC</span></td>
     <td><span class="badge badge-success">${m.classhours} hrs</span></td>
     <td>${m.students}</td><td>${m.semester}</td>
     <td><span class="badge badge-neutral">${m.type}</span></td>
-    <td><button class="btn btn-sm btn-danger" onclick="deleteMat(${m.id})">✕</button></td>
+    <td style="white-space:nowrap;"><button class="btn btn-sm" onclick="editMateria(${m.id})">✎</button> <button class="btn btn-sm btn-danger" onclick="deleteMat(${m.id})">✕</button></td>
   </tr>`).join('');
 }
 
@@ -1044,7 +1079,7 @@ function renderSchedule() {
           <div class="slot-name">${e.materia.name.length>20?e.materia.name.slice(0,20)+'…':e.materia.name}</div>
           <div class="slot-meta">${e.prof.name.split(' ').slice(-2).join(' ')}</div>
           <div class="slot-meta">📍 ${e.espacio.name}${e.isPreassigned?' 📌':''}</div>
-          <div class="slot-meta">${e.materia.credits}cr · ${e.materia.classhours}h</div>
+          <div class="slot-meta">${e.materia.credits} UDC · ${e.materia.classhours}h</div>
         </div></td>`;
       } else html+=`<td></td>`;
     });
@@ -1056,7 +1091,7 @@ function renderSchedule() {
   const shown=[...new Set(filtered.map(s=>s.materia.id))];
   document.getElementById('legend').innerHTML=shown.map(id=>{
     const m=materias.find(m=>m.id===id), c=matMap[id];
-    return`<div class="leg-item"><div class="leg-dot" style="background:${c.bg};border:1px solid ${c.text}33"></div>${m.name} (${m.credits}cr)</div>`;
+    return`<div class="leg-item"><div class="leg-dot" style="background:${c.bg};border:1px solid ${c.text}33"></div>${m.name} (${m.credits} UDC)</div>`;
   }).join('');
 }
 document.getElementById('view-filter').addEventListener('change', renderSchedule);
@@ -1099,9 +1134,9 @@ function renderCargaDocente() {
           <div class="load-row"><div class="load-bar-bg"><div class="load-bar" style="width:${hrsPct}%;background:${hrColor}"></div></div><span style="font-size:11px;color:var(--text-faint);min-width:32px;text-align:right">${hrsPct}%</span></div>
         </div>
       </div>
-      ${d.mats.length?`<table class="tbl"><thead><tr><th>Materia</th><th>Semestre</th><th>Tipo</th><th>Créditos</th><th>Hrs/sem</th><th>Alumn@s</th></tr></thead><tbody>
-        ${d.mats.map(m=>`<tr><td style="font-weight:500">${m.name}</td><td>${m.semester}</td><td><span class="badge badge-neutral">${m.type}</span></td><td><span class="badge badge-info">${m.credits} cr</span></td><td><span class="badge badge-success">${m.classhours} hrs</span></td><td>${m.students}</td></tr>`).join('')}
-        <tr style="background:var(--bg)"><td colspan="3" style="font-weight:500">Total</td><td><strong>${d.credits} cr</strong></td><td><strong>${d.hours} hrs</strong></td><td></td></tr>
+      ${d.mats.length?`<table class="tbl"><thead><tr><th>Materia</th><th>Semestre</th><th>Tipo</th><th>UDC</th><th>Hrs/sem</th><th>Alumn@s</th></tr></thead><tbody>
+        ${d.mats.map(m=>`<tr><td style="font-weight:500">${m.name}</td><td>${m.semester}</td><td><span class="badge badge-neutral">${m.type}</span></td><td><span class="badge badge-info">${m.credits} UDC</span></td><td><span class="badge badge-success">${m.classhours} hrs</span></td><td>${m.students}</td></tr>`).join('')}
+        <tr style="background:var(--bg)"><td colspan="3" style="font-weight:500">Total</td><td><strong>${d.credits} UDC</strong></td><td><strong>${d.hours} hrs</strong></td><td></td></tr>
       </tbody></table>`:'<div style="color:var(--text-faint);font-size:13px;padding:8px 0;">Sin materias asignadas</div>'}
     </div>`;
   });
@@ -1113,7 +1148,7 @@ function renderCargaDocente() {
 // ══════════════════════════════════════════════
 function exportCSV() {
   if(!schedule.length) return alert('Genera el horario primero');
-  const rows=[['Día','Hora','Materia','Semestre','Tipo','Créditos','Hrs clase','Alumn@s','Profesor','Contrato','Espacio','Capacidad','Pre-asignada']];
+  const rows=[['Día','Hora','Materia','Semestre','Tipo','UDC','Hrs clase','Alumn@s','Profesor','Contrato','Espacio','Capacidad','Pre-asignada']];
   [...schedule].sort((a,b)=>a.day.localeCompare(b.day)||a.slot.localeCompare(b.slot))
     .forEach(s=>rows.push([s.day,s.slot,s.materia.name,s.materia.semester,s.materia.type,
       s.materia.credits,s.materia.classhours,s.materia.students,
@@ -1177,7 +1212,7 @@ function clearAll() {
 const TEMPLATES = {
   materias: {
     filename: 'plantilla_materias.csv',
-    header: 'clave,nombre,creditos,hrs_clase,alumnos,semestre,tipo',
+    header: 'clave,nombre,udc,hrs_clase,alumnos,semestre,tipo',
     example: [
       'VA1003,Unidades de formación del semestre de introducción,34,20,24,Intro,Teórica',
       'TM2001,Teoría y estilos musicales,3,1,24,3°,Teórica',
@@ -1267,7 +1302,7 @@ function importCSV(type, input) {
         const name = get(['nombre','name','materia']);
         if (!name) { errors.push(`Fila ${i+1}: nombre vacío`); continue; }
         const clave = get(['clave','key','código','codigo']);
-        const credits = parseInt(get(['creditos','cr_ditos','credits'])) || 6;
+        const credits = parseInt(get(['udc','creditos','cr_ditos','credits'])) || 6;
         const classhours = parseInt(get(['hrs_clase','horas_clase','classhours','hrs'])) || Math.max(1, Math.round(credits / getCredPerHr()));
         const students = parseInt(get(['alumnos','estudiantes','students'])) || 25;
         const semester = normalizeSemester(get(['semestre','semester']));
