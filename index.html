@@ -309,19 +309,23 @@ select[multiple] { height: 72px; }
       <div class="card">
         <div class="card-title">Nueva materia</div>
         <div class="form-grid g2">
-          <div class="form-group" style="grid-column:1/-1">
+          <div class="form-group">
+            <label>Clave</label>
+            <input id="mat-clave" placeholder="Ej. TM2001">
+          </div>
+          <div class="form-group">
             <label>Nombre de la materia</label>
-            <input id="mat-name" placeholder="Ej. Filosofía Medieval">
+            <input id="mat-name" placeholder="Ej. Producción Musical I">
           </div>
         </div>
         <div class="form-grid g5">
           <div class="form-group">
             <label>Créditos</label>
-            <input type="number" id="mat-credits" value="6" min="1" max="30" oninput="syncHours()">
+            <input type="number" id="mat-credits" value="6" min="1" max="60" oninput="syncHours()">
           </div>
           <div class="form-group">
             <label>Hrs clase/sem</label>
-            <input type="number" id="mat-classhours" value="2" min="1" max="10" oninput="syncCredits()">
+            <input type="number" id="mat-classhours" value="2" min="1" max="30" oninput="syncCredits()">
           </div>
           <div class="form-group">
             <label>Alumn@s</label>
@@ -330,6 +334,7 @@ select[multiple] { height: 72px; }
           <div class="form-group">
             <label>Semestre</label>
             <select id="mat-semester">
+              <option value="Intro">Intro</option>
               <option>1°</option><option>2°</option><option>3°</option><option>4°</option>
               <option>5°</option><option>6°</option><option>7°</option><option>8°</option>
             </select>
@@ -337,7 +342,7 @@ select[multiple] { height: 72px; }
           <div class="form-group">
             <label>Tipo</label>
             <select id="mat-type">
-              <option>Teórica</option><option>Teórico-práctica</option><option>Práctica</option><option>Seminario</option>
+              <option>Teórica</option><option>Teórico-práctica</option><option>Práctica</option><option>Seminario</option><option>Optativa</option>
             </select>
           </div>
         </div>
@@ -358,8 +363,8 @@ select[multiple] { height: 72px; }
         <div class="card-title">Materias registradas</div>
         <div class="tbl-wrap">
           <table class="tbl">
-            <thead><tr><th>Nombre</th><th>Créditos</th><th>Hrs/sem</th><th>Alumn@s</th><th>Semestre</th><th>Tipo</th><th></th></tr></thead>
-            <tbody id="mat-body"><tr><td colspan="7"><div class="empty"><div class="empty-icon">📚</div>Sin materias aún</div></td></tr></tbody>
+            <thead><tr><th>Clave</th><th>Nombre</th><th>Créditos</th><th>Hrs/sem</th><th>Alumn@s</th><th>Semestre</th><th>Tipo</th><th></th></tr></thead>
+            <tbody id="mat-body"><tr><td colspan="8"><div class="empty"><div class="empty-icon">📚</div>Sin materias aún</div></td></tr></tbody>
           </table>
         </div>
       </div>
@@ -716,13 +721,16 @@ function addMateria() {
   const name = document.getElementById('mat-name').value.trim();
   if(!name) return alert('Ingresa el nombre de la materia');
   materias.push({
-    id: Date.now(), name,
+    id: Date.now(),
+    clave:      document.getElementById('mat-clave').value.trim(),
+    name,
     credits:    +document.getElementById('mat-credits').value,
     classhours: +document.getElementById('mat-classhours').value,
     students:   +document.getElementById('mat-students').value,
     semester:   document.getElementById('mat-semester').value,
     type:       document.getElementById('mat-type').value
   });
+  document.getElementById('mat-clave').value = '';
   document.getElementById('mat-name').value = '';
   renderMaterias(); updateBadges(); save();
 }
@@ -733,8 +741,9 @@ function deleteMat(id) {
 }
 function renderMaterias() {
   const body = document.getElementById('mat-body');
-  if(!materias.length) { body.innerHTML='<tr><td colspan="7"><div class="empty"><div class="empty-icon">📚</div>Sin materias aún</div></td></tr>'; return; }
+  if(!materias.length) { body.innerHTML='<tr><td colspan="8"><div class="empty"><div class="empty-icon">📚</div>Sin materias aún</div></td></tr>'; return; }
   body.innerHTML = materias.map(m=>`<tr>
+    <td style="color:var(--text-faint);font-size:11px;">${m.clave||'—'}</td>
     <td style="font-weight:500">${m.name}</td>
     <td><span class="badge badge-info">${m.credits} cr</span></td>
     <td><span class="badge badge-success">${m.classhours} hrs</span></td>
@@ -1159,11 +1168,12 @@ function clearAll() {
 const TEMPLATES = {
   materias: {
     filename: 'plantilla_materias.csv',
-    header: 'nombre,creditos,hrs_clase,alumnos,semestre,tipo',
+    header: 'clave,nombre,creditos,hrs_clase,alumnos,semestre,tipo',
     example: [
-      'Producción Musical I,6,2,25,1°,Teórico-práctica',
-      'Acústica y Psicoacústica,9,3,30,2°,Teórica',
-      'Tecnología MIDI,6,2,20,3°,Práctica'
+      'VA1003,Unidades de formación del semestre de introducción,34,20,24,Intro,Teórica',
+      'TM2001,Teoría y estilos musicales,3,1,24,3°,Teórica',
+      'TM2002B,Aplicación de tecnología en la producción sonora,4,4,24,4°,Teórico-práctica',
+      'EG1001,Optativa de matemáticas y ciencias,3,1,24,1°,Optativa'
     ]
   },
   profesores: {
@@ -1201,10 +1211,12 @@ function parseCSVLine(line) {
 
 function normalizeSemester(val) {
   if (!val) return '1°';
-  const clean = val.replace(/[°º]/g, '').trim();
+  const trimmed = val.trim();
+  if (trimmed.toLowerCase() === 'intro') return 'Intro';
+  const clean = trimmed.replace(/[°º]/g, '');
   const n = parseInt(clean);
   if (n >= 1 && n <= 8) return n + '°';
-  return val.trim();
+  return trimmed;
 }
 
 function normalizeContractType(val) {
@@ -1222,13 +1234,13 @@ function importCSV(type, input) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = function(e) {
-    const text = e.target.result.replace(/\r/g, '');
+    const text = e.target.result.replace(/^\ufeff/, '').replace(/\r/g, '');
     const lines = text.split('\n').filter(l => l.trim());
     if (lines.length < 2) {
       showImportResult(type, 0, 0, ['El archivo está vacío o solo tiene encabezado']);
       return;
     }
-    const header = parseCSVLine(lines[0]).map(h => h.toLowerCase().replace(/[^a-záéíóúüñ_]/gi,'_'));
+    const header = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim().replace(/[^a-z0-9áéíóúüñ_]/g,'_'));
     const errors = [], imported = [];
     for (let i = 1; i < lines.length; i++) {
       const row = parseCSVLine(lines[i]);
@@ -1243,14 +1255,15 @@ function importCSV(type, input) {
       if (type === 'materias') {
         const name = get(['nombre','name','materia']);
         if (!name) { errors.push(`Fila ${i+1}: nombre vacío`); continue; }
-        const credits = parseInt(get(['creditos','créditos','credits'])) || 6;
+        const clave = get(['clave','key','código','codigo']);
+        const credits = parseInt(get(['creditos','cr_ditos','credits'])) || 6;
         const classhours = parseInt(get(['hrs_clase','horas_clase','classhours','hrs'])) || Math.max(1, Math.round(credits / getCredPerHr()));
         const students = parseInt(get(['alumnos','estudiantes','students'])) || 25;
         const semester = normalizeSemester(get(['semestre','semester']));
         const rawType = get(['tipo','type']);
-        const validTypes = ['Teórica','Teórico-práctica','Práctica','Seminario'];
+        const validTypes = ['Teórica','Teórico-práctica','Práctica','Seminario','Optativa'];
         const mtype = validTypes.find(t => t.toLowerCase() === rawType.toLowerCase()) || 'Teórica';
-        materias.push({ id: Date.now() + i, name, credits, classhours, students, semester, type: mtype });
+        materias.push({ id: Date.now() + i, clave, name, credits, classhours, students, semester, type: mtype });
         imported.push(name);
       } else if (type === 'profesores') {
         const name = get(['nombre','name','profesor']);
