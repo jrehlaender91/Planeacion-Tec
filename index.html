@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Horarios — Humanidades</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f3ee;
+  --surface: #faf9f7;
+  --border: #e0ddd7;
+  --border-strong: #c8c4bc;
+  --text: #1a1916;
+  --text-muted: #6b6860;
+  --text-faint: #a09d98;
+  --accent: #2c4a3e;
+  --accent-light: #e8f0ed;
+  --accent-mid: #4a7c6f;
+  --danger: #8b2020;
+  --danger-bg: #fdf0f0;
+  --warn: #7a5c00;
+  --warn-bg: #fdf8e8;
+  --success: #1a5c3a;
+  --success-bg: #edf7f2;
+  --info: #1a3a6b;
+  --info-bg: #edf2fb;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.05);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+.header {
+  background: var(--accent);
+  color: #fff;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-md);
+}
+.header-brand { display: flex; align-items: center; gap: 12px; }
+.header-brand h1 { font-family: 'DM Serif Display', serif; font-size: 20px; font-weight: 400; letter-spacing: .01em; color: #fff; }
+.header-brand span { font-size: 11px; color: rgba(255,255,255,.55); font-weight: 300; letter-spacing: .06em; text-transform: uppercase; }
+.header-divider { width: 1px; height: 20px; background: rgba(255,255,255,.2); }
+.header-meta { font-size: 12px; color: rgba(255,255,255,.6); }
+
+/* ── LAYOUT ── */
+.layout { display: flex; min-height: calc(100vh - 56px); }
+
+.sidebar {
+  width: 200px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 24px 0;
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+}
+.sidebar-section { padding: 0 16px; margin-bottom: 8px; }
+.sidebar-label { font-size: 10px; font-weight: 500; color: var(--text-faint); letter-spacing: .08em; text-transform: uppercase; padding: 0 12px; margin-bottom: 6px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: var(--radius-sm);
+  cursor: pointer; color: var(--text-muted); font-size: 13px;
+  transition: all .12s; border: none; background: none; width: 100%; text-align: left;
+}
+.nav-item:hover { background: var(--bg); color: var(--text); }
+.nav-item.active { background: var(--accent-light); color: var(--accent); font-weight: 500; }
+.nav-icon { font-size: 15px; width: 18px; text-align: center; }
+.nav-badge { margin-left: auto; background: var(--accent); color: #fff; border-radius: 20px; padding: 1px 7px; font-size: 10px; font-weight: 500; }
+
+.main { flex: 1; padding: 28px 32px; max-width: 1100px; }
+
+/* ── PANELS ── */
+.panel { display: none; }
+.panel.active { display: block; }
+
+.page-title { font-family: 'DM Serif Display', serif; font-size: 24px; font-weight: 400; margin-bottom: 4px; }
+.page-subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+.card-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 14px; letter-spacing: .01em; }
+
+/* ── FORMS ── */
+.form-grid { display: grid; gap: 10px; margin-bottom: 12px; }
+.g2 { grid-template-columns: 1fr 1fr; }
+.g3 { grid-template-columns: 1fr 1fr 1fr; }
+.g4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+.g5 { grid-template-columns: 1fr 1fr 1fr 1fr 1fr; }
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-group label { font-size: 11px; color: var(--text-muted); font-weight: 500; letter-spacing: .03em; }
+input, select, textarea {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  background: #fff;
+  color: var(--text);
+  transition: border-color .12s;
+}
+input:focus, select:focus { outline: none; border-color: var(--accent-mid); }
+select[multiple] { height: 72px; }
+.hint { font-size: 11px; color: var(--text-faint); margin-top: 2px; }
+.sync-hint {
+  font-size: 11px; padding: 6px 10px; border-radius: var(--radius-sm);
+  background: var(--info-bg); color: var(--info); margin-bottom: 10px;
+}
+
+/* ── BUTTONS ── */
+.btn {
+  padding: 8px 16px; border-radius: var(--radius-sm); font-size: 13px;
+  cursor: pointer; border: 1px solid var(--border); background: var(--surface);
+  color: var(--text); font-family: 'DM Sans', sans-serif;
+  transition: all .12s; font-weight: 400;
+}
+.btn:hover { background: var(--bg); border-color: var(--border-strong); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent-mid); border-color: var(--accent-mid); }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+.btn-danger { background: var(--danger-bg); color: var(--danger); border-color: transparent; }
+.btn-danger:hover { background: #f9dede; }
+.btn-full { width: 100%; margin-top: 4px; }
+.btn-row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; flex-wrap: wrap; }
+
+/* ── TABLE ── */
+.tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+.tbl th { text-align: left; padding: 7px 10px; font-size: 10px; font-weight: 500; color: var(--text-faint); border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: .05em; }
+.tbl td { padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.tbl tr:last-child td { border-bottom: none; }
+.tbl tr:hover td { background: var(--bg); }
+.tbl-wrap { max-height: 240px; overflow-y: auto; margin-top: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+
+/* ── BADGES ── */
+.badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.badge-info { background: var(--info-bg); color: var(--info); }
+.badge-success { background: var(--success-bg); color: var(--success); }
+.badge-warn { background: var(--warn-bg); color: var(--warn); }
+.badge-danger { background: var(--danger-bg); color: var(--danger); }
+.badge-neutral { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+.tag { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 4px; font-size: 11px; background: var(--warn-bg); color: var(--warn); }
+
+/* ── ALERTS ── */
+.alert { padding: 11px 14px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 14px; line-height: 1.5; }
+.alert-success { background: var(--success-bg); color: var(--success); border: 1px solid #b6ddc9; }
+.alert-danger { background: var(--danger-bg); color: var(--danger); border: 1px solid #f0c0c0; }
+.alert-warn { background: var(--warn-bg); color: var(--warn); border: 1px solid #e8d89a; }
+.alert-info { background: var(--info-bg); color: var(--info); border: 1px solid #b8cef0; }
+
+/* ── STATS ── */
+.stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); }
+.stat-num { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--accent); }
+.stat-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+/* ── PROGRESS ── */
+.progress { width: 100%; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 12px; display: none; }
+.progress-fill { height: 100%; background: var(--accent-mid); border-radius: 2px; transition: width .3s; }
+
+/* ── LOAD BAR ── */
+.load-row { display: flex; align-items: center; gap: 8px; }
+.load-bar-bg { flex: 1; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.load-bar { height: 100%; border-radius: 3px; transition: width .3s; }
+
+/* ── SCHEDULE GRID ── */
+.grid-wrap { overflow-x: auto; }
+.sch-grid { border-collapse: collapse; font-size: 11px; min-width: 560px; width: 100%; }
+.sch-grid th { padding: 7px 8px; text-align: center; background: var(--accent); color: #fff; font-size: 11px; font-weight: 500; border: 1px solid rgba(255,255,255,.15); }
+.sch-grid th:first-child { background: var(--surface); color: var(--text-muted); border-color: var(--border); }
+.sch-grid td { padding: 2px; border: 1px solid var(--border); vertical-align: top; min-width: 110px; height: 58px; background: #fff; }
+.sch-grid td:first-child { padding: 0 10px; font-size: 11px; font-weight: 500; color: var(--text-faint); background: var(--surface); white-space: nowrap; vertical-align: middle; text-align: right; }
+.slot { padding: 5px 7px; border-radius: 5px; font-size: 10px; line-height: 1.35; height: 100%; }
+.slot-name { font-weight: 500; }
+.slot-meta { opacity: .8; margin-top: 1px; }
+
+/* ── LEGEND ── */
+.legend { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+.leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-muted); }
+.leg-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+/* ── TOOLBAR ── */
+.toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 10px; flex-wrap: wrap; }
+
+/* ── CARGA CARD ── */
+.carga-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 14px; box-shadow: var(--shadow); }
+.carga-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
+.carga-name { font-family: 'DM Serif Display', serif; font-size: 17px; font-weight: 400; }
+.carga-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.carga-meters { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.meter-label { font-size: 11px; color: var(--text-muted); margin-bottom: 5px; }
+.meter-nums { display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; }
+.meter-val { font-size: 22px; font-weight: 300; }
+.meter-max { font-size: 12px; color: var(--text-faint); }
+
+/* ── CONSTRAINT LIST ── */
+.con-item { display: flex; align-items: center; gap: 6px; padding: 8px 0; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.con-item:last-child { border-bottom: none; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main { padding: 16px; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .g3, .g4, .g5 { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── SAVE INDICATOR ── */
+.save-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-mid); display: inline-block; margin-right: 4px; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── EMPTY ── */
+.empty { text-align: center; padding: 40px 20px; color: var(--text-faint); font-size: 13px; }
+.empty-icon { font-size: 32px; margin-bottom: 8px; opacity: .5; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-brand">
+    <h1>Humanidades</h1>
+    <div class="header-divider"></div>
+    <span>Sistema de Horarios</span>
+  </div>
+  <div class="header-meta">
+    <span class="save-dot"></span>
+    <span id="save-status">Guardado automáticamente</span>
+  </div>
+</div>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sidebar-label">Captura</div>
+    <div class="sidebar-section">
+      <button class="nav-item active" onclick="showPanel('materias')">
+        <span class="nav-icon">📚</span> Materias
+        <span class="nav-badge" id="nb-mat">0</span>
+      </button>
+      <button class="nav-item" onclick="showPanel('profesores')">
+        <span class="nav-icon">👤</span> Profesores
+        <span class="nav-badge" id="nb-prof">0</span>
+      </button>
+      <button class="nav-item" onclick="showPanel('espacios')">
+        <span class="nav-icon">🏛</span> Espacios
+        <span class="nav-badge" id="nb-esp">0</span>
+      </button>
+    </div>
+    <div class="sidebar-label" style="margin-top:16px;">Programación</div>
+    <div class="sidebar-section">
+      <button class="nav-item" onclick="showPanel('preassign')">
+        <span class="nav-icon">📌</span> Pre-asignaciones
+        <span class="nav-badge" id="nb-ca">0</span>
+      </button>
+      <button class="nav-item" onclick="showPanel('config')">
+        <span class="nav-icon">⚙️</span> Configuración
+      </button>
+      <button class="nav-item" onclick="showPanel('generate')">
+        <span class="nav-icon">⚡</span> Generar
+      </button>
+    </div>
+    <div class="sidebar-label" style="margin-top:16px;">Resultados</div>
+    <div class="sidebar-section">
+      <button class="nav-item" onclick="showPanel('horario')">
+        <span class="nav-icon">📅</span> Horario
+      </button>
+      <button class="nav-item" onclick="showPanel('carga')">
+        <span class="nav-icon">📊</span> Carga docente
+      </button>
+    </div>
+    <div style="padding: 24px 16px 0;">
+      <button class="btn btn-sm" onclick="loadSample()" style="width:100%;font-size:11px;color:var(--text-muted);">Cargar ejemplo</button>
+      <button class="btn btn-sm btn-danger" onclick="clearAll()" style="width:100%;margin-top:6px;font-size:11px;">Borrar todo</button>
+    </div>
+  </nav>
+
+  <main class="main">
+
+    <!-- ══ MATERIAS ══ -->
+    <div class="panel active" id="panel-materias">
+      <div class="page-title">Materias</div>
+      <div class="page-subtitle">Registra cada materia con sus unidades crédito, horas clase y número de alumn@s.</div>
+      <div class="card">
+        <div class="card-title">Nueva materia</div>
+        <div class="form-grid g2">
+          <div class="form-group" style="grid-column:1/-1">
+            <label>Nombre de la materia</label>
+            <input id="mat-name" placeholder="Ej. Filosofía Medieval">
+          </div>
+        </div>
+        <div class="form-grid g5">
+          <div class="form-group">
+            <label>Créditos</label>
+            <input type="number" id="mat-credits" value="6" min="1" max="30" oninput="syncHours()">
+          </div>
+          <div class="form-group">
+            <label>Hrs clase/sem</label>
+            <input type="number" id="mat-classhours" value="2" min="1" max="10" oninput="syncCredits()">
+          </div>
+          <div class="form-group">
+            <label>Alumn@s</label>
+            <input type="number" id="mat-students" value="25" min="1" max="400">
+          </div>
+          <div class="form-group">
+            <label>Semestre</label>
+            <select id="mat-semester">
+              <option>1°</option><option>2°</option><option>3°</option><option>4°</option>
+              <option>5°</option><option>6°</option><option>7°</option><option>8°</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tipo</label>
+            <select id="mat-type">
+              <option>Teórica</option><option>Teórico-práctica</option><option>Práctica</option><option>Seminario</option>
+            </select>
+          </div>
+        </div>
+        <div class="sync-hint" id="credits-hint">6 créditos → 2 hrs clase/sem &nbsp;·&nbsp; Relación: 1 hr = 3 créditos</div>
+        <button class="btn btn-primary btn-full" onclick="addMateria()">+ Agregar materia</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Materias registradas</div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>Nombre</th><th>Créditos</th><th>Hrs/sem</th><th>Alumn@s</th><th>Semestre</th><th>Tipo</th><th></th></tr></thead>
+            <tbody id="mat-body"><tr><td colspan="7"><div class="empty"><div class="empty-icon">📚</div>Sin materias aún</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PROFESORES ══ -->
+    <div class="panel" id="panel-profesores">
+      <div class="page-title">Profesores</div>
+      <div class="page-subtitle">Registra cada profesor con su tipo de contrato, límite de créditos y horas, y disponibilidad.</div>
+      <div class="card">
+        <div class="card-title">Nuevo profesor</div>
+        <div class="form-grid g2">
+          <div class="form-group" style="grid-column:1/-1">
+            <label>Nombre completo</label>
+            <input id="prof-name" placeholder="Ej. Dra. García López">
+          </div>
+        </div>
+        <div class="form-grid g4">
+          <div class="form-group">
+            <label>Tipo de contrato</label>
+            <select id="prof-type" onchange="updateMaxLoad()">
+              <option value="TC">Tiempo completo</option>
+              <option value="MT">Medio tiempo</option>
+              <option value="HN">Honorarios</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Créditos máx/sem</label>
+            <input type="number" id="prof-maxcredits" value="36" min="1" max="120">
+          </div>
+          <div class="form-group">
+            <label>Hrs clase máx/sem</label>
+            <input type="number" id="prof-maxhours" value="12" min="1" max="40">
+          </div>
+          <div class="form-group">
+            <label>Días no disponibles</label>
+            <select id="prof-blocked" multiple>
+              <option value="Lun">Lunes</option><option value="Mar">Martes</option>
+              <option value="Mié">Miércoles</option><option value="Jue">Jueves</option><option value="Vie">Viernes</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="addProfesor()">+ Agregar profesor</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Profesores registrados</div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>Nombre</th><th>Contrato</th><th>Créd. máx</th><th>Hrs máx</th><th>Días bloqueados</th><th></th></tr></thead>
+            <tbody id="prof-body"><tr><td colspan="6"><div class="empty"><div class="empty-icon">👤</div>Sin profesores aún</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ESPACIOS ══ -->
+    <div class="panel" id="panel-espacios">
+      <div class="page-title">Espacios</div>
+      <div class="page-subtitle">Registra aulas, salas y anfiteatros con su capacidad real.</div>
+      <div class="card">
+        <div class="card-title">Nuevo espacio</div>
+        <div class="form-grid g4">
+          <div class="form-group" style="grid-column:1/3">
+            <label>Nombre del espacio</label>
+            <input id="esp-name" placeholder="Ej. Aula 301">
+          </div>
+          <div class="form-group">
+            <label>Capacidad</label>
+            <input type="number" id="esp-cap" value="30" min="1" max="600">
+          </div>
+          <div class="form-group">
+            <label>Tipo</label>
+            <select id="esp-type">
+              <option>Aula regular</option><option>Sala de seminario</option><option>Anfiteatro</option>
+              <option>Laboratorio</option><option>Sala de cómputo</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="addEspacio()">+ Agregar espacio</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Espacios registrados</div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>Nombre</th><th>Capacidad</th><th>Tipo</th><th></th></tr></thead>
+            <tbody id="esp-body"><tr><td colspan="4"><div class="empty"><div class="empty-icon">🏛</div>Sin espacios aún</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PRE-ASIGNACIONES ══ -->
+    <div class="panel" id="panel-preassign">
+      <div class="page-title">Pre-asignaciones</div>
+      <div class="page-subtitle">Fija combinaciones inamovibles de materia, profesor, espacio, día u hora.</div>
+      <div class="card">
+        <div class="card-title">Nueva pre-asignación</div>
+        <div class="form-grid g3">
+          <div class="form-group">
+            <label>Materia</label>
+            <select id="ca-mat"></select>
+          </div>
+          <div class="form-group">
+            <label>Profesor fijo (opcional)</label>
+            <select id="ca-prof"><option value="">— Sin fijar —</option></select>
+          </div>
+          <div class="form-group">
+            <label>Espacio fijo (opcional)</label>
+            <select id="ca-esp"><option value="">— Sin fijar —</option></select>
+          </div>
+        </div>
+        <div class="form-grid g2">
+          <div class="form-group">
+            <label>Día fijo (opcional)</label>
+            <select id="ca-day">
+              <option value="">— Cualquier día —</option>
+              <option>Lun</option><option>Mar</option><option>Mié</option><option>Jue</option><option>Vie</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Hora fija (opcional)</label>
+            <select id="ca-time">
+              <option value="">— Cualquier hora —</option>
+              <option>07:00</option><option>08:00</option><option>09:00</option><option>10:00</option>
+              <option>11:00</option><option>12:00</option><option>13:00</option><option>14:00</option>
+              <option>15:00</option><option>16:00</option><option>17:00</option><option>18:00</option><option>19:00</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="addConstraint()">+ Agregar pre-asignación</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Pre-asignaciones registradas</div>
+        <div id="constraints-list"><div class="empty"><div class="empty-icon">📌</div>Sin pre-asignaciones</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Bloquear franja horaria de profesor</div>
+        <div class="form-grid g3" style="align-items:end;">
+          <div class="form-group"><label>Profesor</label><select id="bl-prof"></select></div>
+          <div class="form-group"><label>Día</label><select id="bl-day"><option>Lun</option><option>Mar</option><option>Mié</option><option>Jue</option><option>Vie</option></select></div>
+          <div class="form-group"><label>Hora inicio</label><select id="bl-time"><option>07:00</option><option>08:00</option><option>09:00</option><option>10:00</option><option>11:00</option><option>12:00</option><option>13:00</option><option>14:00</option><option>15:00</option><option>16:00</option><option>17:00</option><option>18:00</option></select></div>
+        </div>
+        <button class="btn" onclick="addBlock()">+ Bloquear franja</button>
+        <div id="blocks-list" style="margin-top:10px;"></div>
+      </div>
+    </div>
+
+    <!-- ══ CONFIG ══ -->
+    <div class="panel" id="panel-config">
+      <div class="page-title">Configuración</div>
+      <div class="page-subtitle">Define el marco horario del semestre y la relación créditos–horas.</div>
+      <div class="card">
+        <div class="card-title">Horario del semestre</div>
+        <div class="form-grid g4">
+          <div class="form-group">
+            <label>Hora de inicio</label>
+            <select id="cfg-start">
+              <option>07:00</option><option selected>08:00</option><option>09:00</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Hora de fin</label>
+            <select id="cfg-end">
+              <option>18:00</option><option>19:00</option><option selected>20:00</option><option>21:00</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Duración por clase</label>
+            <select id="cfg-duration">
+              <option>50 min</option><option selected>60 min</option><option>90 min</option><option>120 min</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Días hábiles</label>
+            <select id="cfg-days" multiple>
+              <option selected value="Lun">Lunes</option><option selected value="Mar">Martes</option>
+              <option selected value="Mié">Miércoles</option><option selected value="Jue">Jueves</option>
+              <option selected value="Vie">Viernes</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Relación créditos → horas</div>
+        <div class="form-grid g2">
+          <div class="form-group">
+            <label>Créditos por hora clase</label>
+            <input type="number" id="cfg-cred-per-hr" value="3" min="1" max="10" oninput="saveCfg()">
+            <span class="hint">Ej: 3 → 1 hr clase = 3 créditos</span>
+          </div>
+          <div class="form-group">
+            <label>Máx. clases/profesor/día</label>
+            <select id="cfg-maxday">
+              <option>2</option><option>3</option><option selected>4</option><option value="99">Sin límite</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ GENERATE ══ -->
+    <div class="panel" id="panel-generate">
+      <div class="page-title">Generar horario</div>
+      <div class="page-subtitle">El sistema asignará automáticamente profesores y espacios respetando todos los límites y restricciones.</div>
+      <div class="stats-row">
+        <div class="stat"><div class="stat-num" id="st-mat">0</div><div class="stat-label">Materias</div></div>
+        <div class="stat"><div class="stat-num" id="st-prof">0</div><div class="stat-label">Profesores</div></div>
+        <div class="stat"><div class="stat-num" id="st-esp">0</div><div class="stat-label">Espacios</div></div>
+        <div class="stat"><div class="stat-num" id="st-ca">0</div><div class="stat-label">Pre-asignaciones</div></div>
+      </div>
+      <div class="card" id="load-preview-card" style="display:none">
+        <div class="card-title">Estimación de carga (pre-asignaciones fijas)</div>
+        <div id="load-preview"></div>
+      </div>
+      <div class="card">
+        <button class="btn btn-primary btn-full" id="gen-btn" onclick="generateSchedule()" style="font-size:14px;padding:12px;">⚡ Generar horario automáticamente</button>
+        <div class="progress" id="progress"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      </div>
+      <div id="gen-result"></div>
+    </div>
+
+    <!-- ══ HORARIO ══ -->
+    <div class="panel" id="panel-horario">
+      <div class="page-title">Horario del semestre</div>
+      <div class="page-subtitle">Vista semanal. Filtra por profesor, espacio o semestre.</div>
+      <div class="toolbar">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <select id="view-mode" onchange="renderSchedule()" style="font-size:13px;">
+            <option value="general">Vista general</option>
+            <option value="profesor">Por profesor</option>
+            <option value="espacio">Por espacio</option>
+            <option value="semestre">Por semestre</option>
+          </select>
+          <select id="view-filter" onchange="renderSchedule()" style="font-size:13px;display:none;"></select>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn" onclick="exportCSV()">↓ Exportar CSV</button>
+          <button class="btn btn-primary" onclick="exportExcelFull()">↓ Exportar Excel completo</button>
+        </div>
+      </div>
+      <div class="card">
+        <div id="schedule-view"><div class="empty"><div class="empty-icon">📅</div>Genera el horario primero.</div></div>
+        <div class="legend" id="legend"></div>
+      </div>
+    </div>
+
+    <!-- ══ CARGA DOCENTE ══ -->
+    <div class="panel" id="panel-carga">
+      <div class="page-title">Carga docente</div>
+      <div class="page-subtitle">Unidades crédito y horas clase por profesor, con validación de límites contractuales.</div>
+      <div id="carga-view"><div class="empty"><div class="empty-icon">📊</div>Genera el horario primero.</div></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let materias = [], profesores = [], espacios = [], constraints = [], blocks = [], schedule = [];
+const COLORS = ['#b5d4f4','#9fe1cb','#f5c4b3','#f4c0d1','#fac775','#c0dd97','#afa9ec','#f0997b','#86c9c4','#f5dba0'];
+const TCOLORS = ['#0c447c','#085041','#712b13','#72243e','#633806','#3b6d11','#3c3489','#993c1d','#0d4440','#6b4800'];
+
+// ── localStorage persistence ──
+function save() {
+  try {
+    localStorage.setItem('hum_materias', JSON.stringify(materias));
+    localStorage.setItem('hum_profesores', JSON.stringify(profesores));
+    localStorage.setItem('hum_espacios', JSON.stringify(espacios));
+    localStorage.setItem('hum_constraints', JSON.stringify(constraints));
+    localStorage.setItem('hum_blocks', JSON.stringify(blocks));
+    localStorage.setItem('hum_schedule', JSON.stringify(schedule));
+    const t = new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('save-status').textContent = `Guardado a las ${t}`;
+  } catch(e) {}
+}
+function load() {
+  try {
+    materias     = JSON.parse(localStorage.getItem('hum_materias')     || '[]');
+    profesores   = JSON.parse(localStorage.getItem('hum_profesores')   || '[]');
+    espacios     = JSON.parse(localStorage.getItem('hum_espacios')     || '[]');
+    constraints  = JSON.parse(localStorage.getItem('hum_constraints')  || '[]');
+    blocks       = JSON.parse(localStorage.getItem('hum_blocks')       || '[]');
+    schedule     = JSON.parse(localStorage.getItem('hum_schedule')     || '[]');
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════
+const panels = ['materias','profesores','espacios','preassign','config','generate','horario','carga'];
+function showPanel(id) {
+  panels.forEach(p => {
+    document.getElementById('panel-'+p).classList.toggle('active', p===id);
+  });
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const btn = [...document.querySelectorAll('.nav-item')].find(n => n.getAttribute('onclick')?.includes(`'${id}'`));
+  if(btn) btn.classList.add('active');
+  if(id==='preassign') updateConstraintSelects();
+  if(id==='generate') { updateStats(); renderLoadPreview(); }
+  if(id==='horario') renderSchedule();
+  if(id==='carga') renderCargaDocente();
+}
+function updateBadges() {
+  document.getElementById('nb-mat').textContent  = materias.length;
+  document.getElementById('nb-prof').textContent = profesores.length;
+  document.getElementById('nb-esp').textContent  = espacios.length;
+  document.getElementById('nb-ca').textContent   = constraints.length;
+}
+
+// ══════════════════════════════════════════════
+// CREDITS ↔ HOURS SYNC
+// ══════════════════════════════════════════════
+function getCredPerHr() { return +document.getElementById('cfg-cred-per-hr').value || 3; }
+function syncHours() {
+  const cr = +document.getElementById('mat-credits').value;
+  document.getElementById('mat-classhours').value = Math.max(1, Math.round(cr / getCredPerHr()));
+  updateHint();
+}
+function syncCredits() {
+  const hrs = +document.getElementById('mat-classhours').value;
+  document.getElementById('mat-credits').value = hrs * getCredPerHr();
+  updateHint();
+}
+function updateHint() {
+  const cr = +document.getElementById('mat-credits').value;
+  const hrs = +document.getElementById('mat-classhours').value;
+  const cph = getCredPerHr();
+  document.getElementById('credits-hint').textContent = `${cr} créditos → ${hrs} hrs clase/sem  ·  Relación: 1 hr = ${cph} créditos`;
+}
+const contractDefaults = { TC:{maxcredits:36,maxhours:12}, MT:{maxcredits:18,maxhours:6}, HN:{maxcredits:12,maxhours:4} };
+function updateMaxLoad() {
+  const d = contractDefaults[document.getElementById('prof-type').value];
+  document.getElementById('prof-maxcredits').value = d.maxcredits;
+  document.getElementById('prof-maxhours').value   = d.maxhours;
+}
+function saveCfg() { updateHint(); }
+
+// ══════════════════════════════════════════════
+// MATERIAS
+// ══════════════════════════════════════════════
+function addMateria() {
+  const name = document.getElementById('mat-name').value.trim();
+  if(!name) return alert('Ingresa el nombre de la materia');
+  materias.push({
+    id: Date.now(), name,
+    credits:    +document.getElementById('mat-credits').value,
+    classhours: +document.getElementById('mat-classhours').value,
+    students:   +document.getElementById('mat-students').value,
+    semester:   document.getElementById('mat-semester').value,
+    type:       document.getElementById('mat-type').value
+  });
+  document.getElementById('mat-name').value = '';
+  renderMaterias(); updateBadges(); save();
+}
+function deleteMat(id) {
+  materias = materias.filter(m=>m.id!==id);
+  constraints = constraints.filter(c=>c.matId!==id);
+  renderMaterias(); renderConstraints(); updateBadges(); save();
+}
+function renderMaterias() {
+  const body = document.getElementById('mat-body');
+  if(!materias.length) { body.innerHTML='<tr><td colspan="7"><div class="empty"><div class="empty-icon">📚</div>Sin materias aún</div></td></tr>'; return; }
+  body.innerHTML = materias.map(m=>`<tr>
+    <td style="font-weight:500">${m.name}</td>
+    <td><span class="badge badge-info">${m.credits} cr</span></td>
+    <td><span class="badge badge-success">${m.classhours} hrs</span></td>
+    <td>${m.students}</td><td>${m.semester}</td>
+    <td><span class="badge badge-neutral">${m.type}</span></td>
+    <td><button class="btn btn-sm btn-danger" onclick="deleteMat(${m.id})">✕</button></td>
+  </tr>`).join('');
+}
+
+// ══════════════════════════════════════════════
+// PROFESORES
+// ══════════════════════════════════════════════
+function addProfesor() {
+  const name = document.getElementById('prof-name').value.trim();
+  if(!name) return alert('Ingresa el nombre');
+  const blocked = Array.from(document.getElementById('prof-blocked').selectedOptions).map(o=>o.value);
+  profesores.push({
+    id: Date.now(), name, blocked,
+    contractType: document.getElementById('prof-type').value,
+    maxcredits:  +document.getElementById('prof-maxcredits').value,
+    maxhours:    +document.getElementById('prof-maxhours').value
+  });
+  document.getElementById('prof-name').value = '';
+  renderProfesores(); updateBadges(); save();
+}
+function deleteProf(id) {
+  profesores = profesores.filter(p=>p.id!==id);
+  constraints = constraints.filter(c=>!c.prof||c.prof.id!==id);
+  blocks = blocks.filter(b=>b.prof.id!==id);
+  renderProfesores(); renderConstraints(); renderBlocks(); updateBadges(); save();
+}
+const ctLabel = {TC:'T. Completo', MT:'Medio tiempo', HN:'Honorarios'};
+function renderProfesores() {
+  const body = document.getElementById('prof-body');
+  if(!profesores.length) { body.innerHTML='<tr><td colspan="6"><div class="empty"><div class="empty-icon">👤</div>Sin profesores aún</div></td></tr>'; return; }
+  body.innerHTML = profesores.map(p=>`<tr>
+    <td style="font-weight:500">${p.name}</td>
+    <td><span class="badge badge-neutral">${ctLabel[p.contractType]||p.contractType}</span></td>
+    <td>${p.maxcredits} cr</td><td>${p.maxhours} hrs</td>
+    <td>${p.blocked.length ? p.blocked.join(', ') : '<span style="color:var(--text-faint)">—</span>'}</td>
+    <td><button class="btn btn-sm btn-danger" onclick="deleteProf(${p.id})">✕</button></td>
+  </tr>`).join('');
+}
+
+// ══════════════════════════════════════════════
+// ESPACIOS
+// ══════════════════════════════════════════════
+function addEspacio() {
+  const name = document.getElementById('esp-name').value.trim();
+  if(!name) return alert('Ingresa el nombre');
+  espacios.push({
+    id: Date.now(), name,
+    capacity: +document.getElementById('esp-cap').value,
+    type: document.getElementById('esp-type').value
+  });
+  document.getElementById('esp-name').value = '';
+  renderEspacios(); updateBadges(); save();
+}
+function deleteEsp(id) {
+  espacios = espacios.filter(e=>e.id!==id);
+  constraints = constraints.filter(c=>!c.esp||c.esp.id!==id);
+  renderEspacios(); renderConstraints(); updateBadges(); save();
+}
+function renderEspacios() {
+  const body = document.getElementById('esp-body');
+  if(!espacios.length) { body.innerHTML='<tr><td colspan="4"><div class="empty"><div class="empty-icon">🏛</div>Sin espacios aún</div></td></tr>'; return; }
+  body.innerHTML = espacios.map(e=>`<tr>
+    <td style="font-weight:500">${e.name}</td>
+    <td>${e.capacity} personas</td>
+    <td><span class="badge badge-neutral">${e.type}</span></td>
+    <td><button class="btn btn-sm btn-danger" onclick="deleteEsp(${e.id})">✕</button></td>
+  </tr>`).join('');
+}
+
+// ══════════════════════════════════════════════
+// CONSTRAINTS
+// ══════════════════════════════════════════════
+function updateConstraintSelects() {
+  document.getElementById('ca-mat').innerHTML   = materias.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+  document.getElementById('ca-prof').innerHTML  = '<option value="">— Sin fijar —</option>'+profesores.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  document.getElementById('ca-esp').innerHTML   = '<option value="">— Sin fijar —</option>'+espacios.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+  document.getElementById('bl-prof').innerHTML  = profesores.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+}
+function addConstraint() {
+  const matId = +document.getElementById('ca-mat').value;
+  if(!matId) return alert('Selecciona una materia');
+  const profId = document.getElementById('ca-prof').value;
+  const espId  = document.getElementById('ca-esp').value;
+  constraints.push({
+    id: Date.now(), matId,
+    mat:  materias.find(m=>m.id===matId),
+    prof: profId ? profesores.find(p=>p.id===+profId) : null,
+    esp:  espId  ? espacios.find(e=>e.id===+espId)    : null,
+    day:  document.getElementById('ca-day').value,
+    time: document.getElementById('ca-time').value
+  });
+  renderConstraints(); updateBadges(); save();
+}
+function removeConstraint(id) { constraints = constraints.filter(c=>c.id!==id); renderConstraints(); updateBadges(); save(); }
+function renderConstraints() {
+  const el = document.getElementById('constraints-list');
+  if(!constraints.length) { el.innerHTML='<div class="empty"><div class="empty-icon">📌</div>Sin pre-asignaciones</div>'; return; }
+  el.innerHTML = constraints.map(c=>`<div class="con-item">
+    <span class="badge badge-info">${c.mat.name}</span>
+    ${c.prof?`<span class="tag">👤 ${c.prof.name}</span>`:''}
+    ${c.esp ?`<span class="tag">🏛 ${c.esp.name}</span>`:''}
+    ${c.day ?`<span class="tag">📅 ${c.day}</span>`:''}
+    ${c.time?`<span class="tag">⏰ ${c.time}</span>`:''}
+    <button class="btn btn-sm btn-danger" onclick="removeConstraint(${c.id})" style="margin-left:auto">✕</button>
+  </div>`).join('');
+}
+function addBlock() {
+  const profId = +document.getElementById('bl-prof').value;
+  const prof = profesores.find(p=>p.id===profId);
+  if(!prof) return;
+  blocks.push({ id:Date.now(), prof, day:document.getElementById('bl-day').value, time:document.getElementById('bl-time').value });
+  renderBlocks(); save();
+}
+function removeBlock(id) { blocks = blocks.filter(b=>b.id!==id); renderBlocks(); save(); }
+function renderBlocks() {
+  const el = document.getElementById('blocks-list');
+  if(!blocks.length) { el.innerHTML=''; return; }
+  el.innerHTML = blocks.map(b=>`<div class="con-item">
+    <span class="badge badge-warn">⛔ ${b.prof.name}</span>
+    <span style="font-size:12px;">${b.day} a las ${b.time}</span>
+    <button class="btn btn-sm btn-danger" onclick="removeBlock(${b.id})" style="margin-left:auto">✕</button>
+  </div>`).join('');
+}
+
+// ══════════════════════════════════════════════
+// GENERATE
+// ══════════════════════════════════════════════
+function updateStats() {
+  document.getElementById('st-mat').textContent  = materias.length;
+  document.getElementById('st-prof').textContent = profesores.length;
+  document.getElementById('st-esp').textContent  = espacios.length;
+  document.getElementById('st-ca').textContent   = constraints.length;
+}
+function renderLoadPreview() {
+  if(!materias.length||!profesores.length) { document.getElementById('load-preview-card').style.display='none'; return; }
+  document.getElementById('load-preview-card').style.display='block';
+  const profCr={}, profHrs={};
+  profesores.forEach(p=>{profCr[p.id]=0; profHrs[p.id]=0;});
+  constraints.forEach(c=>{ if(c.prof){ profCr[c.prof.id]+=c.mat.credits; profHrs[c.prof.id]+=c.mat.classhours; }});
+  let html=`<table class="tbl"><thead><tr><th>Profesor</th><th>Contrato</th><th>Créd. máx</th><th>Créd. fijos</th><th>Hrs máx</th><th>Hrs fijas</th><th>Estado</th></tr></thead><tbody>`;
+  profesores.forEach(p=>{
+    const cr=profCr[p.id], hrs=profHrs[p.id];
+    const crPct=Math.min(Math.round(cr/p.maxcredits*100),100);
+    const hrsPct=Math.min(Math.round(hrs/p.maxhours*100),100);
+    const oc=cr>p.maxcredits, oh=hrs>p.maxhours;
+    html+=`<tr>
+      <td style="font-weight:500">${p.name}</td>
+      <td>${ctLabel[p.contractType]||p.contractType}</td>
+      <td>${p.maxcredits}</td>
+      <td><div class="load-row"><span style="min-width:24px;color:${oc?'var(--danger)':'var(--text)'}">${cr}</span><div class="load-bar-bg"><div class="load-bar" style="width:${crPct}%;background:${oc?'var(--danger)':'var(--accent-mid)'}"></div></div></div></td>
+      <td>${p.maxhours}</td>
+      <td><div class="load-row"><span style="min-width:24px;color:${oh?'var(--danger)':'var(--text)'}">${hrs}</span><div class="load-bar-bg"><div class="load-bar" style="width:${hrsPct}%;background:${oh?'var(--danger)':'var(--accent-mid)'}"></div></div></div></td>
+      <td>${(oc||oh)?'<span class="badge badge-danger">⚠ Excede</span>':cr===0?'<span class="badge badge-neutral">Sin fijos</span>':'<span class="badge badge-success">OK</span>'}</td>
+    </tr>`;
+  });
+  html+=`</tbody></table>`;
+  document.getElementById('load-preview').innerHTML=html;
+}
+function getDays()  { return Array.from(document.getElementById('cfg-days').selectedOptions).map(o=>o.value); }
+function getSlots() {
+  const s=parseInt(document.getElementById('cfg-start').value);
+  const e=parseInt(document.getElementById('cfg-end').value);
+  const d=parseInt(document.getElementById('cfg-duration').value)/60;
+  const out=[]; for(let h=s;h+d<=e;h+=d) out.push(`${Math.floor(h).toString().padStart(2,'0')}:${Math.round((h%1)*60).toString().padStart(2,'0')}`);
+  return out;
+}
+
+async function generateSchedule() {
+  if(!materias.length||!profesores.length||!espacios.length) return alert('Necesitas al menos una materia, un profesor y un espacio.');
+  document.getElementById('gen-btn').disabled=true;
+  document.getElementById('progress').style.display='block';
+  document.getElementById('gen-result').innerHTML='';
+  schedule=[];
+
+  const days=getDays(), slots=getSlots();
+  const maxPD=+document.getElementById('cfg-maxday').value;
+
+  const sessions=[];
+  materias.forEach(m=>{ for(let i=0;i<m.classhours;i++) sessions.push({materia:m,idx:i}); });
+  sessions.sort(()=>Math.random()-.5);
+
+  const profOcc={}, espOcc={}, pdCount={}, profCr={}, profHrs={};
+  profesores.forEach(p=>{profCr[p.id]=0;profHrs[p.id]=0;});
+
+  const K=(d,s)=>`${d}_${s}`;
+  const isBlk=(p,d,s)=>(p.blocked||[]).includes(d)||blocks.some(b=>b.prof.id===p.id&&b.day===d&&b.time===s);
+  const pfFree=(p,d,s)=>!isBlk(p,d,s)&&!profOcc[p.id]?.[K(d,s)];
+  const efFree=(e,d,s)=>!espOcc[e.id]?.[K(d,s)];
+  const pdK=(pid,d)=>`${pid}_${d}`;
+  const underLimit=(p,m)=>(profCr[p.id]+m.credits<=p.maxcredits)&&(profHrs[p.id]+m.classhours<=p.maxhours);
+
+  const failed=[];
+  let prog=0;
+
+  for(const session of sessions) {
+    prog++;
+    document.getElementById('progress-fill').style.width=Math.round(prog/sessions.length*100)+'%';
+    await new Promise(r=>setTimeout(r,3));
+
+    const m=session.materia;
+    const con=constraints.find(c=>c.matId===m.id);
+    const fP=con?.prof||null, fE=con?.esp||null, fD=con?.day||null, fT=con?.time||null;
+    const dayOrder=fD?[fD]:[...days].sort(()=>Math.random()-.5);
+    const slotOrder=fT?[fT]:[...slots];
+    let placed=false;
+
+    outer: for(const day of dayOrder) {
+      for(const slot of slotOrder) {
+        let prof=null;
+        if(fP) { if(pfFree(fP,day,slot)&&(pdCount[pdK(fP.id,day)]||0)<maxPD) prof=fP; }
+        else {
+          const av=profesores.filter(p=>pfFree(p,day,slot)&&(pdCount[pdK(p.id,day)]||0)<maxPD&&(session.idx>0||underLimit(p,m)));
+          if(av.length) prof=av[Math.floor(Math.random()*av.length)];
+        }
+        if(!prof) continue;
+        let esp=null;
+        if(fE) { if(efFree(fE,day,slot)&&fE.capacity>=m.students) esp=fE; }
+        else {
+          const av=espacios.filter(e=>efFree(e,day,slot)&&e.capacity>=m.students).sort((a,b)=>a.capacity-b.capacity);
+          if(av.length) esp=av[0];
+        }
+        if(!esp) continue;
+
+        if(!profOcc[prof.id]) profOcc[prof.id]={};
+        profOcc[prof.id][K(day,slot)]=true;
+        if(!espOcc[esp.id]) espOcc[esp.id]={};
+        espOcc[esp.id][K(day,slot)]=true;
+        pdCount[pdK(prof.id,day)]=(pdCount[pdK(prof.id,day)]||0)+1;
+        if(session.idx===0) { profCr[prof.id]+=m.credits; profHrs[prof.id]+=m.classhours; }
+        schedule.push({materia:m,prof,espacio:esp,day,slot,isPreassigned:!!con});
+        placed=true; break outer;
+      }
+    }
+    if(!placed) failed.push(m);
+  }
+
+  setTimeout(()=>{document.getElementById('progress').style.display='none';document.getElementById('gen-btn').disabled=false;},400);
+
+  const violations=profesores.filter(p=>profCr[p.id]>p.maxcredits||profHrs[p.id]>p.maxhours).map(p=>({p,cr:profCr[p.id],hrs:profHrs[p.id]}));
+  const pct=Math.round(schedule.length/sessions.length*100);
+  let html=`<div class="alert alert-${pct===100&&!violations.length?'success':pct>70?'warn':'danger'}">
+    <strong>${pct===100?'✓ Horario generado sin conflictos':'⚠ Horario parcialmente generado'}</strong><br>
+    ${schedule.length} de ${sessions.length} sesiones asignadas correctamente (${pct}%)
+  </div>`;
+  if(violations.length) {
+    html+=`<div class="card"><div class="card-title" style="color:var(--danger)">Profesores con carga excedida</div>
+    ${violations.map(v=>`<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;">
+      <strong>${v.p.name}</strong> — ${v.cr} cr (máx ${v.p.maxcredits}) · ${v.hrs} hrs (máx ${v.p.maxhours})
+    </div>`).join('')}</div>`;
+  }
+  if(failed.length) {
+    html+=`<div class="card"><div class="card-title" style="color:var(--danger)">Materias sin asignar (${failed.length})</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">${[...new Set(failed.map(m=>m.name))].map(n=>`<span class="badge badge-danger">${n}</span>`).join('')}</div></div>`;
+  }
+  if(schedule.length) html+=`<button class="btn btn-primary" onclick="showPanel('horario')" style="margin-top:4px;">Ver horario →</button>`;
+  document.getElementById('gen-result').innerHTML=html;
+  save();
+}
+
+// ══════════════════════════════════════════════
+// SCHEDULE VIEW
+// ══════════════════════════════════════════════
+function renderSchedule() {
+  if(!schedule.length) return;
+  const mode=document.getElementById('view-mode').value;
+  const fEl=document.getElementById('view-filter');
+  const days=getDays(), slots=getSlots();
+  const matMap={};
+  materias.forEach((m,i)=>matMap[m.id]={bg:COLORS[i%COLORS.length],text:TCOLORS[i%TCOLORS.length]});
+
+  fEl.style.display='none';
+  let filtered=schedule;
+  if(mode==='profesor'){ fEl.style.display=''; fEl.innerHTML=profesores.map(p=>`<option value="${p.id}">${p.name}</option>`).join(''); filtered=schedule.filter(s=>s.prof.id===+fEl.value); }
+  if(mode==='espacio') { fEl.style.display=''; fEl.innerHTML=espacios.map(e=>`<option value="${e.id}">${e.name}</option>`).join(''); filtered=schedule.filter(s=>s.espacio.id===+fEl.value); }
+  if(mode==='semestre'){ const sems=[...new Set(materias.map(m=>m.semester))].sort(); fEl.style.display=''; fEl.innerHTML=sems.map(s=>`<option value="${s}">${s} Semestre</option>`).join(''); filtered=schedule.filter(s=>s.materia.semester===fEl.value); }
+
+  let html=`<div class="grid-wrap"><table class="sch-grid"><thead><tr><th>Hora</th>${days.map(d=>`<th>${d}</th>`).join('')}</tr></thead><tbody>`;
+  slots.forEach(slot=>{
+    html+=`<tr><td>${slot}</td>`;
+    days.forEach(day=>{
+      const e=filtered.find(s=>s.day===day&&s.slot===slot);
+      if(e){ const c=matMap[e.materia.id];
+        html+=`<td><div class="slot" style="background:${c.bg};color:${c.text}">
+          <div class="slot-name">${e.materia.name.length>20?e.materia.name.slice(0,20)+'…':e.materia.name}</div>
+          <div class="slot-meta">${e.prof.name.split(' ').slice(-2).join(' ')}</div>
+          <div class="slot-meta">📍 ${e.espacio.name}${e.isPreassigned?' 📌':''}</div>
+          <div class="slot-meta">${e.materia.credits}cr · ${e.materia.classhours}h</div>
+        </div></td>`;
+      } else html+=`<td></td>`;
+    });
+    html+=`</tr>`;
+  });
+  html+=`</tbody></table></div>`;
+  document.getElementById('schedule-view').innerHTML=html;
+
+  const shown=[...new Set(filtered.map(s=>s.materia.id))];
+  document.getElementById('legend').innerHTML=shown.map(id=>{
+    const m=materias.find(m=>m.id===id), c=matMap[id];
+    return`<div class="leg-item"><div class="leg-dot" style="background:${c.bg};border:1px solid ${c.text}33"></div>${m.name} (${m.credits}cr)</div>`;
+  }).join('');
+}
+document.getElementById('view-filter').addEventListener('change', renderSchedule);
+
+// ══════════════════════════════════════════════
+// CARGA DOCENTE
+// ══════════════════════════════════════════════
+function renderCargaDocente() {
+  if(!schedule.length){ document.getElementById('carga-view').innerHTML='<div class="empty"><div class="empty-icon">📊</div>Genera el horario primero.</div>'; return; }
+  const pData={};
+  profesores.forEach(p=>{ pData[p.id]={prof:p,mats:[],credits:0,hours:0}; });
+  const seen={};
+  schedule.forEach(s=>{
+    const pid=s.prof.id; if(!pData[pid]) return;
+    const k=`${pid}_${s.materia.id}`;
+    if(!seen[k]){ seen[k]=true; pData[pid].mats.push(s.materia); pData[pid].credits+=s.materia.credits; pData[pid].hours+=s.materia.classhours; }
+  });
+  let html='';
+  Object.values(pData).forEach(d=>{
+    const p=d.prof;
+    const crPct=Math.min(Math.round(d.credits/p.maxcredits*100),100);
+    const hrsPct=Math.min(Math.round(d.hours/p.maxhours*100),100);
+    const oC=d.credits>p.maxcredits, oH=d.hours>p.maxhours;
+    const crColor=oC?'var(--danger)':crPct>80?'var(--warn)':'var(--accent-mid)';
+    const hrColor=oH?'var(--danger)':hrsPct>80?'var(--warn)':'var(--accent-mid)';
+    html+=`<div class="carga-card">
+      <div class="carga-header">
+        <div><div class="carga-name">${p.name}</div><div class="carga-sub">${ctLabel[p.contractType]||p.contractType}</div></div>
+        ${(oC||oH)?'<span class="badge badge-danger">⚠ Carga excedida</span>':'<span class="badge badge-success">✓ Dentro del límite</span>'}
+      </div>
+      <div class="carga-meters">
+        <div>
+          <div class="meter-label">Unidades crédito</div>
+          <div class="meter-nums"><span class="meter-val" style="color:${crColor}">${d.credits}</span><span class="meter-max">/ ${p.maxcredits} máx</span></div>
+          <div class="load-row"><div class="load-bar-bg"><div class="load-bar" style="width:${crPct}%;background:${crColor}"></div></div><span style="font-size:11px;color:var(--text-faint);min-width:32px;text-align:right">${crPct}%</span></div>
+        </div>
+        <div>
+          <div class="meter-label">Horas clase / semana</div>
+          <div class="meter-nums"><span class="meter-val" style="color:${hrColor}">${d.hours}</span><span class="meter-max">/ ${p.maxhours} máx</span></div>
+          <div class="load-row"><div class="load-bar-bg"><div class="load-bar" style="width:${hrsPct}%;background:${hrColor}"></div></div><span style="font-size:11px;color:var(--text-faint);min-width:32px;text-align:right">${hrsPct}%</span></div>
+        </div>
+      </div>
+      ${d.mats.length?`<table class="tbl"><thead><tr><th>Materia</th><th>Semestre</th><th>Tipo</th><th>Créditos</th><th>Hrs/sem</th><th>Alumn@s</th></tr></thead><tbody>
+        ${d.mats.map(m=>`<tr><td style="font-weight:500">${m.name}</td><td>${m.semester}</td><td><span class="badge badge-neutral">${m.type}</span></td><td><span class="badge badge-info">${m.credits} cr</span></td><td><span class="badge badge-success">${m.classhours} hrs</span></td><td>${m.students}</td></tr>`).join('')}
+        <tr style="background:var(--bg)"><td colspan="3" style="font-weight:500">Total</td><td><strong>${d.credits} cr</strong></td><td><strong>${d.hours} hrs</strong></td><td></td></tr>
+      </tbody></table>`:'<div style="color:var(--text-faint);font-size:13px;padding:8px 0;">Sin materias asignadas</div>'}
+    </div>`;
+  });
+  document.getElementById('carga-view').innerHTML=html||'<div class="empty">Sin datos.</div>';
+}
+
+// ══════════════════════════════════════════════
+// EXPORT
+// ══════════════════════════════════════════════
+function exportCSV() {
+  if(!schedule.length) return alert('Genera el horario primero');
+  const rows=[['Día','Hora','Materia','Semestre','Tipo','Créditos','Hrs clase','Alumn@s','Profesor','Contrato','Espacio','Capacidad','Pre-asignada']];
+  [...schedule].sort((a,b)=>a.day.localeCompare(b.day)||a.slot.localeCompare(b.slot))
+    .forEach(s=>rows.push([s.day,s.slot,s.materia.name,s.materia.semester,s.materia.type,
+      s.materia.credits,s.materia.classhours,s.materia.students,
+      s.prof.name,ctLabel[s.prof.contractType]||s.prof.contractType,
+      s.espacio.name,s.espacio.capacity,s.isPreassigned?'Sí':'No']));
+  const csv=rows.map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download='horario_humanidades.csv'; a.click();
+}
+function exportExcelFull() {
+  exportCSV();
+  alert('El CSV descargado puedes abrirlo directamente en Excel.\n\nSi necesitas un .xlsx con formato profesional y pestañas separadas por semestre, ábrelo en Excel → Guardar como → Libro de Excel.');
+}
+
+// ══════════════════════════════════════════════
+// SAMPLE + CLEAR
+// ══════════════════════════════════════════════
+function loadSample() {
+  if(!confirm('Esto reemplazará todos los datos actuales. ¿Continuar?')) return;
+  materias=[
+    {id:1,name:'Filosofía Medieval',credits:6,classhours:2,students:28,semester:'3°',type:'Teórica'},
+    {id:2,name:'Historia del Arte',credits:9,classhours:3,students:35,semester:'2°',type:'Teórico-práctica'},
+    {id:3,name:'Lingüística General',credits:6,classhours:2,students:22,semester:'1°',type:'Teórica'},
+    {id:4,name:'Literatura Latinoam.',credits:6,classhours:2,students:30,semester:'4°',type:'Seminario'},
+    {id:5,name:'Ética Contemporánea',credits:6,classhours:2,students:18,semester:'5°',type:'Teórica'},
+    {id:6,name:'Antropología Cultural',credits:6,classhours:2,students:25,semester:'3°',type:'Teórico-práctica'},
+    {id:7,name:'Hermenéutica',credits:9,classhours:3,students:20,semester:'6°',type:'Seminario'},
+    {id:8,name:'Gramática Española',credits:6,classhours:2,students:32,semester:'1°',type:'Teórica'},
+  ];
+  profesores=[
+    {id:10,name:'Dra. García López',contractType:'TC',maxcredits:36,maxhours:12,blocked:[]},
+    {id:11,name:'Dr. Martínez Ruiz',contractType:'MT',maxcredits:18,maxhours:6,blocked:['Vie']},
+    {id:12,name:'Mtra. Soto Vela',contractType:'TC',maxcredits:36,maxhours:12,blocked:[]},
+    {id:13,name:'Dr. Ramírez Cruz',contractType:'HN',maxcredits:12,maxhours:4,blocked:['Lun','Mar']},
+    {id:14,name:'Mtro. Pérez Ibarra',contractType:'MT',maxcredits:18,maxhours:6,blocked:[]},
+  ];
+  espacios=[
+    {id:20,name:'Aula 301',capacity:40,type:'Aula regular'},
+    {id:21,name:'Sala 205',capacity:25,type:'Sala de seminario'},
+    {id:22,name:'Anfiteatro A',capacity:80,type:'Anfiteatro'},
+    {id:23,name:'Sala 102',capacity:20,type:'Sala de seminario'},
+    {id:24,name:'Aula 410',capacity:35,type:'Aula regular'},
+  ];
+  constraints=[]; blocks=[]; schedule=[];
+  renderMaterias(); renderProfesores(); renderEspacios(); renderConstraints(); renderBlocks();
+  updateBadges(); save();
+  alert('✓ Datos de ejemplo cargados. Ve a "Generar" para crear el horario.');
+}
+function clearAll() {
+  if(!confirm('¿Borrar todos los datos? Esta acción no se puede deshacer.')) return;
+  materias=[]; profesores=[]; espacios=[]; constraints=[]; blocks=[]; schedule=[];
+  renderMaterias(); renderProfesores(); renderEspacios(); renderConstraints(); renderBlocks();
+  document.getElementById('schedule-view').innerHTML='<div class="empty"><div class="empty-icon">📅</div>Genera el horario primero.</div>';
+  document.getElementById('carga-view').innerHTML='<div class="empty"><div class="empty-icon">📊</div>Genera el horario primero.</div>';
+  updateBadges(); save();
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+load();
+renderMaterias(); renderProfesores(); renderEspacios(); renderConstraints(); renderBlocks();
+updateBadges(); updateHint();
+</script>
+</body>
+</html>
