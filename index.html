@@ -424,7 +424,10 @@ select[multiple] { height: 72px; }
               <input type="file" accept=".csv" style="display:none" onchange="importCSV('profesores',this)">
             </label>
           </div>
-          <button class="btn btn-primary" onclick="addProfesor()">+ Agregar profesor</button>
+          <div style="display:flex;gap:8px;">
+            <button class="btn" id="prof-cancel-btn" onclick="cancelEditProfesor()" style="display:none;">✕ Cancelar</button>
+            <button class="btn btn-primary" id="prof-add-btn" onclick="addProfesor()">+ Agregar profesor</button>
+          </div>
         </div>
         <div id="import-result-profesores" style="margin-top:6px;"></div>
       </div>
@@ -458,11 +461,14 @@ select[multiple] { height: 72px; }
             <label>Tipo</label>
             <select id="esp-type">
               <option>Aula regular</option><option>Sala de seminario</option><option>Anfiteatro</option>
-              <option>Laboratorio</option><option>Sala de cómputo</option>
+              <option>Laboratorio</option><option>Sala de cómputo</option><option>Estudio</option>
             </select>
           </div>
         </div>
-        <button class="btn btn-primary btn-full" onclick="addEspacio()">+ Agregar espacio</button>
+        <div class="btn-row" style="justify-content:flex-end;margin-top:8px;">
+          <button class="btn" id="esp-cancel-btn" onclick="cancelEditEspacio()" style="display:none;">✕ Cancelar</button>
+          <button class="btn btn-primary" id="esp-add-btn" onclick="addEspacio()">+ Agregar espacio</button>
+        </div>
       </div>
       <div class="card">
         <div class="card-title">Espacios registrados</div>
@@ -646,6 +652,8 @@ select[multiple] { height: 72px; }
 // ══════════════════════════════════════════════
 let materias = [], profesores = [], espacios = [], constraints = [], blocks = [], schedule = [];
 let editingMatId = null;
+let editingProfId = null;
+let editingEspId = null;
 const COLORS = ['#b5d4f4','#9fe1cb','#f5c4b3','#f4c0d1','#fac775','#c0dd97','#afa9ec','#f0997b','#86c9c4','#f5dba0'];
 const TCOLORS = ['#0c447c','#085041','#712b13','#72243e','#633806','#3b6d11','#3c3489','#993c1d','#0d4440','#6b4800'];
 
@@ -801,15 +809,46 @@ function addProfesor() {
   const name = document.getElementById('prof-name').value.trim();
   if(!name) return alert('Ingresa el nombre');
   const blocked = Array.from(document.getElementById('prof-blocked').selectedOptions).map(o=>o.value);
-  profesores.push({
-    id: Date.now(), name, blocked,
+  const data = {
+    name, blocked,
     carrera:      document.getElementById('prof-carrera').value,
     contractType: document.getElementById('prof-type').value,
     maxcredits:  +document.getElementById('prof-maxcredits').value,
     maxhours:    +document.getElementById('prof-maxhours').value
-  });
+  };
+  if (editingProfId !== null) {
+    const idx = profesores.findIndex(p => p.id === editingProfId);
+    if (idx !== -1) profesores[idx] = { ...profesores[idx], ...data };
+    editingProfId = null;
+    document.getElementById('prof-add-btn').textContent = '+ Agregar profesor';
+    document.getElementById('prof-cancel-btn').style.display = 'none';
+  } else {
+    profesores.push({ id: Date.now(), ...data });
+  }
   document.getElementById('prof-name').value = '';
   renderProfesores(); updateBadges(); save();
+}
+function editProfesor(id) {
+  const p = profesores.find(p => p.id === id);
+  if (!p) return;
+  document.getElementById('prof-name').value        = p.name;
+  document.getElementById('prof-carrera').value     = p.carrera || 'LTM';
+  document.getElementById('prof-type').value        = p.contractType;
+  document.getElementById('prof-maxcredits').value  = p.maxcredits;
+  document.getElementById('prof-maxhours').value    = p.maxhours;
+  Array.from(document.getElementById('prof-blocked').options).forEach(o => {
+    o.selected = (p.blocked || []).includes(o.value);
+  });
+  editingProfId = id;
+  document.getElementById('prof-add-btn').textContent = '✓ Actualizar profesor';
+  document.getElementById('prof-cancel-btn').style.display = '';
+  document.querySelector('#panel-profesores .card').scrollIntoView({ behavior: 'smooth' });
+}
+function cancelEditProfesor() {
+  editingProfId = null;
+  document.getElementById('prof-name').value = '';
+  document.getElementById('prof-add-btn').textContent = '+ Agregar profesor';
+  document.getElementById('prof-cancel-btn').style.display = 'none';
 }
 function deleteProf(id) {
   profesores = profesores.filter(p=>p.id!==id);
@@ -827,7 +866,7 @@ function renderProfesores() {
     <td><span class="badge badge-neutral">${ctLabel[p.contractType]||p.contractType}</span></td>
     <td>${p.maxcredits} ud</td><td>${p.maxhours} hrs</td>
     <td>${p.blocked.length ? p.blocked.join(', ') : '<span style="color:var(--text-faint)">—</span>'}</td>
-    <td><button class="btn btn-sm btn-danger" onclick="deleteProf(${p.id})">✕</button></td>
+    <td style="white-space:nowrap;"><button class="btn btn-sm" onclick="editProfesor(${p.id})">✎</button> <button class="btn btn-sm btn-danger" onclick="deleteProf(${p.id})">✕</button></td>
   </tr>`).join('');
 }
 
@@ -837,13 +876,39 @@ function renderProfesores() {
 function addEspacio() {
   const name = document.getElementById('esp-name').value.trim();
   if(!name) return alert('Ingresa el nombre');
-  espacios.push({
-    id: Date.now(), name,
+  const data = {
+    name,
     capacity: +document.getElementById('esp-cap').value,
-    type: document.getElementById('esp-type').value
-  });
+    type:     document.getElementById('esp-type').value
+  };
+  if (editingEspId !== null) {
+    const idx = espacios.findIndex(e => e.id === editingEspId);
+    if (idx !== -1) espacios[idx] = { ...espacios[idx], ...data };
+    editingEspId = null;
+    document.getElementById('esp-add-btn').textContent = '+ Agregar espacio';
+    document.getElementById('esp-cancel-btn').style.display = 'none';
+  } else {
+    espacios.push({ id: Date.now(), ...data });
+  }
   document.getElementById('esp-name').value = '';
   renderEspacios(); updateBadges(); save();
+}
+function editEspacio(id) {
+  const e = espacios.find(e => e.id === id);
+  if (!e) return;
+  document.getElementById('esp-name').value = e.name;
+  document.getElementById('esp-cap').value  = e.capacity;
+  document.getElementById('esp-type').value = e.type;
+  editingEspId = id;
+  document.getElementById('esp-add-btn').textContent = '✓ Actualizar espacio';
+  document.getElementById('esp-cancel-btn').style.display = '';
+  document.querySelector('#panel-espacios .card').scrollIntoView({ behavior: 'smooth' });
+}
+function cancelEditEspacio() {
+  editingEspId = null;
+  document.getElementById('esp-name').value = '';
+  document.getElementById('esp-add-btn').textContent = '+ Agregar espacio';
+  document.getElementById('esp-cancel-btn').style.display = 'none';
 }
 function deleteEsp(id) {
   espacios = espacios.filter(e=>e.id!==id);
@@ -857,7 +922,7 @@ function renderEspacios() {
     <td style="font-weight:500">${e.name}</td>
     <td>${e.capacity} personas</td>
     <td><span class="badge badge-neutral">${e.type}</span></td>
-    <td><button class="btn btn-sm btn-danger" onclick="deleteEsp(${e.id})">✕</button></td>
+    <td style="white-space:nowrap;"><button class="btn btn-sm" onclick="editEspacio(${e.id})">✎</button> <button class="btn btn-sm btn-danger" onclick="deleteEsp(${e.id})">✕</button></td>
   </tr>`).join('');
 }
 
