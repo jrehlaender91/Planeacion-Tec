@@ -377,23 +377,29 @@ select[multiple] { height: 72px; }
       <div class="card">
         <div class="card-title">Nuevo profesor</div>
         <div class="form-grid g2">
-          <div class="form-group" style="grid-column:1/-1">
+          <div class="form-group">
             <label>Nombre completo</label>
             <input id="prof-name" placeholder="Ej. Dra. García López">
+          </div>
+          <div class="form-group">
+            <label>Carrera</label>
+            <select id="prof-carrera">
+              <option value="LTM">LTM</option>
+              <option value="LC">LC</option>
+            </select>
           </div>
         </div>
         <div class="form-grid g4">
           <div class="form-group">
             <label>Tipo de contrato</label>
             <select id="prof-type" onchange="updateMaxLoad()">
-              <option value="TC">Tiempo completo</option>
-              <option value="MT">Medio tiempo</option>
-              <option value="HN">Honorarios</option>
+              <option value="Planta">Planta</option>
+              <option value="Cátedra">Cátedra</option>
             </select>
           </div>
           <div class="form-group">
-            <label>Créditos máx/sem</label>
-            <input type="number" id="prof-maxcredits" value="36" min="1" max="120">
+            <label>Unidades máx/sem</label>
+            <input type="number" id="prof-maxcredits" value="14" min="1" max="120">
           </div>
           <div class="form-group">
             <label>Hrs clase máx/sem</label>
@@ -423,8 +429,8 @@ select[multiple] { height: 72px; }
         <div class="card-title">Profesores registrados</div>
         <div class="tbl-wrap">
           <table class="tbl">
-            <thead><tr><th>Nombre</th><th>Contrato</th><th>Créd. máx</th><th>Hrs máx</th><th>Días bloqueados</th><th></th></tr></thead>
-            <tbody id="prof-body"><tr><td colspan="6"><div class="empty"><div class="empty-icon">👤</div>Sin profesores aún</div></td></tr></tbody>
+            <thead><tr><th>Nombre</th><th>Carrera</th><th>Contrato</th><th>Unidades máx</th><th>Hrs máx</th><th>Días bloqueados</th><th></th></tr></thead>
+            <tbody id="prof-body"><tr><td colspan="7"><div class="empty"><div class="empty-icon">👤</div>Sin profesores aún</div></td></tr></tbody>
           </table>
         </div>
       </div>
@@ -706,7 +712,7 @@ function updateHint() {
   const cph = getCredPerHr();
   document.getElementById('credits-hint').textContent = `${cr} créditos → ${hrs} hrs clase/sem  ·  Relación: 1 hr = ${cph} créditos`;
 }
-const contractDefaults = { TC:{maxcredits:36,maxhours:12}, MT:{maxcredits:18,maxhours:6}, HN:{maxcredits:12,maxhours:4} };
+const contractDefaults = { Planta:{maxcredits:14,maxhours:12}, Cátedra:{maxcredits:10,maxhours:6} };
 function updateMaxLoad() {
   const d = contractDefaults[document.getElementById('prof-type').value];
   document.getElementById('prof-maxcredits').value = d.maxcredits;
@@ -762,6 +768,7 @@ function addProfesor() {
   const blocked = Array.from(document.getElementById('prof-blocked').selectedOptions).map(o=>o.value);
   profesores.push({
     id: Date.now(), name, blocked,
+    carrera:      document.getElementById('prof-carrera').value,
     contractType: document.getElementById('prof-type').value,
     maxcredits:  +document.getElementById('prof-maxcredits').value,
     maxhours:    +document.getElementById('prof-maxhours').value
@@ -775,14 +782,15 @@ function deleteProf(id) {
   blocks = blocks.filter(b=>b.prof.id!==id);
   renderProfesores(); renderConstraints(); renderBlocks(); updateBadges(); save();
 }
-const ctLabel = {TC:'T. Completo', MT:'Medio tiempo', HN:'Honorarios'};
+const ctLabel = {Planta:'Planta', Cátedra:'Cátedra', TC:'Planta', MT:'Cátedra', HN:'Cátedra'};
 function renderProfesores() {
   const body = document.getElementById('prof-body');
-  if(!profesores.length) { body.innerHTML='<tr><td colspan="6"><div class="empty"><div class="empty-icon">👤</div>Sin profesores aún</div></td></tr>'; return; }
+  if(!profesores.length) { body.innerHTML='<tr><td colspan="7"><div class="empty"><div class="empty-icon">👤</div>Sin profesores aún</div></td></tr>'; return; }
   body.innerHTML = profesores.map(p=>`<tr>
     <td style="font-weight:500">${p.name}</td>
+    <td><span class="badge badge-info">${p.carrera||'—'}</span></td>
     <td><span class="badge badge-neutral">${ctLabel[p.contractType]||p.contractType}</span></td>
-    <td>${p.maxcredits} cr</td><td>${p.maxhours} hrs</td>
+    <td>${p.maxcredits} ud</td><td>${p.maxhours} hrs</td>
     <td>${p.blocked.length ? p.blocked.join(', ') : '<span style="color:var(--text-faint)">—</span>'}</td>
     <td><button class="btn btn-sm btn-danger" onclick="deleteProf(${p.id})">✕</button></td>
   </tr>`).join('');
@@ -888,7 +896,7 @@ function renderLoadPreview() {
   const profCr={}, profHrs={};
   profesores.forEach(p=>{profCr[p.id]=0; profHrs[p.id]=0;});
   constraints.forEach(c=>{ if(c.prof){ profCr[c.prof.id]+=c.mat.credits; profHrs[c.prof.id]+=c.mat.classhours; }});
-  let html=`<table class="tbl"><thead><tr><th>Profesor</th><th>Contrato</th><th>Créd. máx</th><th>Créd. fijos</th><th>Hrs máx</th><th>Hrs fijas</th><th>Estado</th></tr></thead><tbody>`;
+  let html=`<table class="tbl"><thead><tr><th>Profesor</th><th>Carrera</th><th>Contrato</th><th>Unid. máx</th><th>Unid. fijas</th><th>Hrs máx</th><th>Hrs fijas</th><th>Estado</th></tr></thead><tbody>`;
   profesores.forEach(p=>{
     const cr=profCr[p.id], hrs=profHrs[p.id];
     const crPct=Math.min(Math.round(cr/p.maxcredits*100),100);
@@ -896,6 +904,7 @@ function renderLoadPreview() {
     const oc=cr>p.maxcredits, oh=hrs>p.maxhours;
     html+=`<tr>
       <td style="font-weight:500">${p.name}</td>
+      <td><span class="badge badge-info">${p.carrera||'—'}</span></td>
       <td>${ctLabel[p.contractType]||p.contractType}</td>
       <td>${p.maxcredits}</td>
       <td><div class="load-row"><span style="min-width:24px;color:${oc?'var(--danger)':'var(--text)'}">${cr}</span><div class="load-bar-bg"><div class="load-bar" style="width:${crPct}%;background:${oc?'var(--danger)':'var(--accent-mid)'}"></div></div></div></td>
@@ -1080,7 +1089,7 @@ function renderCargaDocente() {
       </div>
       <div class="carga-meters">
         <div>
-          <div class="meter-label">Unidades crédito</div>
+          <div class="meter-label">Unidades</div>
           <div class="meter-nums"><span class="meter-val" style="color:${crColor}">${d.credits}</span><span class="meter-max">/ ${p.maxcredits} máx</span></div>
           <div class="load-row"><div class="load-bar-bg"><div class="load-bar" style="width:${crPct}%;background:${crColor}"></div></div><span style="font-size:11px;color:var(--text-faint);min-width:32px;text-align:right">${crPct}%</span></div>
         </div>
@@ -1135,11 +1144,11 @@ function loadSample() {
     {id:8,name:'Gramática Española',credits:6,classhours:2,students:32,semester:'1°',type:'Teórica'},
   ];
   profesores=[
-    {id:10,name:'Dra. García López',contractType:'TC',maxcredits:36,maxhours:12,blocked:[]},
-    {id:11,name:'Dr. Martínez Ruiz',contractType:'MT',maxcredits:18,maxhours:6,blocked:['Vie']},
-    {id:12,name:'Mtra. Soto Vela',contractType:'TC',maxcredits:36,maxhours:12,blocked:[]},
-    {id:13,name:'Dr. Ramírez Cruz',contractType:'HN',maxcredits:12,maxhours:4,blocked:['Lun','Mar']},
-    {id:14,name:'Mtro. Pérez Ibarra',contractType:'MT',maxcredits:18,maxhours:6,blocked:[]},
+    {id:10,name:'Dra. García López',carrera:'LTM',contractType:'Planta',maxcredits:14,maxhours:12,blocked:[]},
+    {id:11,name:'Dr. Martínez Ruiz',carrera:'LC',contractType:'Cátedra',maxcredits:10,maxhours:6,blocked:['Vie']},
+    {id:12,name:'Mtra. Soto Vela',carrera:'LTM',contractType:'Planta',maxcredits:14,maxhours:12,blocked:[]},
+    {id:13,name:'Dr. Ramírez Cruz',carrera:'LC',contractType:'Cátedra',maxcredits:10,maxhours:6,blocked:['Lun','Mar']},
+    {id:14,name:'Mtro. Pérez Ibarra',carrera:'LTM',contractType:'Cátedra',maxcredits:10,maxhours:6,blocked:[]},
   ];
   espacios=[
     {id:20,name:'Aula 301',capacity:40,type:'Aula regular'},
@@ -1178,11 +1187,11 @@ const TEMPLATES = {
   },
   profesores: {
     filename: 'plantilla_profesores.csv',
-    header: 'nombre,contrato,max_creditos,max_horas,dias_bloqueados',
+    header: 'nombre,carrera,contrato,max_unidades,max_horas,dias_bloqueados',
     example: [
-      'Dra. García López,TC,36,12,',
-      'Mtro. Pérez Ruiz,MT,18,6,Lun;Mié',
-      'Lic. Soto Vela,HN,12,4,Vie'
+      'Dra. García López,LTM,Planta,14,12,',
+      'Mtro. Pérez Ruiz,LTM,Cátedra,10,6,Lun;Mié',
+      'Lic. Soto Vela,LC,Cátedra,10,4,Vie'
     ]
   }
 };
@@ -1220,13 +1229,15 @@ function normalizeSemester(val) {
 }
 
 function normalizeContractType(val) {
-  if (!val) return 'TC';
-  const v = val.toUpperCase().trim();
-  if (['TC','MT','HN'].includes(v)) return v;
-  if (v.includes('COMPLETO')) return 'TC';
-  if (v.includes('MEDIO')) return 'MT';
-  if (v.includes('HONOR')) return 'HN';
-  return 'TC';
+  if (!val) return 'Planta';
+  const v = val.trim();
+  const vU = v.toUpperCase();
+  if (v === 'Planta' || vU === 'PLANTA') return 'Planta';
+  if (v === 'Cátedra' || v === 'Catedra' || vU === 'CÁTEDRA' || vU === 'CATEDRA') return 'Cátedra';
+  // backwards compat
+  if (vU === 'TC') return 'Planta';
+  if (vU === 'MT' || vU === 'HN') return 'Cátedra';
+  return 'Planta';
 }
 
 function importCSV(type, input) {
@@ -1268,13 +1279,14 @@ function importCSV(type, input) {
       } else if (type === 'profesores') {
         const name = get(['nombre','name','profesor']);
         if (!name) { errors.push(`Fila ${i+1}: nombre vacío`); continue; }
+        const carrera = get(['carrera']).toUpperCase() || 'LTM';
         const contractType = normalizeContractType(get(['contrato','contract','tipo_contrato']));
         const defaults = contractDefaults[contractType];
-        const maxcredits = parseInt(get(['max_creditos','maxcreditos','creditos_max'])) || defaults.maxcredits;
+        const maxcredits = parseInt(get(['max_unidades','max_creditos','maxcreditos','unidades_max','creditos_max'])) || defaults.maxcredits;
         const maxhours   = parseInt(get(['max_horas','maxhoras','horas_max'])) || defaults.maxhours;
         const rawBlocked = get(['dias_bloqueados','bloqueados','blocked']);
         const blocked = rawBlocked ? rawBlocked.split(/[;,|]/).map(d => d.trim()).filter(d => ['Lun','Mar','Mié','Jue','Vie'].includes(d)) : [];
-        profesores.push({ id: Date.now() + i, name, contractType, maxcredits, maxhours, blocked });
+        profesores.push({ id: Date.now() + i, name, carrera, contractType, maxcredits, maxhours, blocked });
         imported.push(name);
       }
     }
