@@ -342,7 +342,17 @@ select[multiple] { height: 72px; }
           </div>
         </div>
         <div class="sync-hint" id="credits-hint">6 créditos → 2 hrs clase/sem &nbsp;·&nbsp; Relación: 1 hr = 3 créditos</div>
-        <button class="btn btn-primary btn-full" onclick="addMateria()">+ Agregar materia</button>
+        <div class="btn-row" style="justify-content:space-between;margin-top:8px;">
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-sm" onclick="downloadTemplate('materias')">↓ Plantilla CSV</button>
+            <label class="btn btn-sm" style="cursor:pointer;margin:0;">
+              ↑ Importar CSV
+              <input type="file" accept=".csv" style="display:none" onchange="importCSV('materias',this)">
+            </label>
+          </div>
+          <button class="btn btn-primary" onclick="addMateria()">+ Agregar materia</button>
+        </div>
+        <div id="import-result-materias" style="margin-top:6px;"></div>
       </div>
       <div class="card">
         <div class="card-title">Materias registradas</div>
@@ -392,7 +402,17 @@ select[multiple] { height: 72px; }
             </select>
           </div>
         </div>
-        <button class="btn btn-primary btn-full" onclick="addProfesor()">+ Agregar profesor</button>
+        <div class="btn-row" style="justify-content:space-between;margin-top:8px;">
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-sm" onclick="downloadTemplate('profesores')">↓ Plantilla CSV</button>
+            <label class="btn btn-sm" style="cursor:pointer;margin:0;">
+              ↑ Importar CSV
+              <input type="file" accept=".csv" style="display:none" onchange="importCSV('profesores',this)">
+            </label>
+          </div>
+          <button class="btn btn-primary" onclick="addProfesor()">+ Agregar profesor</button>
+        </div>
+        <div id="import-result-profesores" style="margin-top:6px;"></div>
       </div>
       <div class="card">
         <div class="card-title">Profesores registrados</div>
@@ -1131,6 +1151,138 @@ function clearAll() {
   document.getElementById('schedule-view').innerHTML='<div class="empty"><div class="empty-icon">📅</div>Genera el horario primero.</div>';
   document.getElementById('carga-view').innerHTML='<div class="empty"><div class="empty-icon">📊</div>Genera el horario primero.</div>';
   updateBadges(); save();
+}
+
+// ══════════════════════════════════════════════
+// CSV IMPORT / EXPORT TEMPLATES
+// ══════════════════════════════════════════════
+const TEMPLATES = {
+  materias: {
+    filename: 'plantilla_materias.csv',
+    header: 'nombre,creditos,hrs_clase,alumnos,semestre,tipo',
+    example: [
+      'Producción Musical I,6,2,25,1°,Teórico-práctica',
+      'Acústica y Psicoacústica,9,3,30,2°,Teórica',
+      'Tecnología MIDI,6,2,20,3°,Práctica'
+    ]
+  },
+  profesores: {
+    filename: 'plantilla_profesores.csv',
+    header: 'nombre,contrato,max_creditos,max_horas,dias_bloqueados',
+    example: [
+      'Dra. García López,TC,36,12,',
+      'Mtro. Pérez Ruiz,MT,18,6,Lun;Mié',
+      'Lic. Soto Vela,HN,12,4,Vie'
+    ]
+  }
+};
+
+function downloadTemplate(type) {
+  const t = TEMPLATES[type];
+  const csv = '\ufeff' + t.header + '\n' + t.example.join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8;'}));
+  a.download = t.filename;
+  a.click();
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { inQ = !inQ; }
+    else if (c === ',' && !inQ) { result.push(cur.trim()); cur = ''; }
+    else { cur += c; }
+  }
+  result.push(cur.trim());
+  return result;
+}
+
+function normalizeSemester(val) {
+  if (!val) return '1°';
+  const clean = val.replace(/[°º]/g, '').trim();
+  const n = parseInt(clean);
+  if (n >= 1 && n <= 8) return n + '°';
+  return val.trim();
+}
+
+function normalizeContractType(val) {
+  if (!val) return 'TC';
+  const v = val.toUpperCase().trim();
+  if (['TC','MT','HN'].includes(v)) return v;
+  if (v.includes('COMPLETO')) return 'TC';
+  if (v.includes('MEDIO')) return 'MT';
+  if (v.includes('HONOR')) return 'HN';
+  return 'TC';
+}
+
+function importCSV(type, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const text = e.target.result.replace(/\r/g, '');
+    const lines = text.split('\n').filter(l => l.trim());
+    if (lines.length < 2) {
+      showImportResult(type, 0, 0, ['El archivo está vacío o solo tiene encabezado']);
+      return;
+    }
+    const header = parseCSVLine(lines[0]).map(h => h.toLowerCase().replace(/[^a-záéíóúüñ_]/gi,'_'));
+    const errors = [], imported = [];
+    for (let i = 1; i < lines.length; i++) {
+      const row = parseCSVLine(lines[i]);
+      if (row.every(c => !c)) continue; // skip blank lines
+      const get = (keys) => {
+        for (const k of keys) {
+          const idx = header.indexOf(k);
+          if (idx !== -1 && row[idx] !== undefined) return row[idx].trim();
+        }
+        return '';
+      };
+      if (type === 'materias') {
+        const name = get(['nombre','name','materia']);
+        if (!name) { errors.push(`Fila ${i+1}: nombre vacío`); continue; }
+        const credits = parseInt(get(['creditos','créditos','credits'])) || 6;
+        const classhours = parseInt(get(['hrs_clase','horas_clase','classhours','hrs'])) || Math.max(1, Math.round(credits / getCredPerHr()));
+        const students = parseInt(get(['alumnos','estudiantes','students'])) || 25;
+        const semester = normalizeSemester(get(['semestre','semester']));
+        const rawType = get(['tipo','type']);
+        const validTypes = ['Teórica','Teórico-práctica','Práctica','Seminario'];
+        const mtype = validTypes.find(t => t.toLowerCase() === rawType.toLowerCase()) || 'Teórica';
+        materias.push({ id: Date.now() + i, name, credits, classhours, students, semester, type: mtype });
+        imported.push(name);
+      } else if (type === 'profesores') {
+        const name = get(['nombre','name','profesor']);
+        if (!name) { errors.push(`Fila ${i+1}: nombre vacío`); continue; }
+        const contractType = normalizeContractType(get(['contrato','contract','tipo_contrato']));
+        const defaults = contractDefaults[contractType];
+        const maxcredits = parseInt(get(['max_creditos','maxcreditos','creditos_max'])) || defaults.maxcredits;
+        const maxhours   = parseInt(get(['max_horas','maxhoras','horas_max'])) || defaults.maxhours;
+        const rawBlocked = get(['dias_bloqueados','bloqueados','blocked']);
+        const blocked = rawBlocked ? rawBlocked.split(/[;,|]/).map(d => d.trim()).filter(d => ['Lun','Mar','Mié','Jue','Vie'].includes(d)) : [];
+        profesores.push({ id: Date.now() + i, name, contractType, maxcredits, maxhours, blocked });
+        imported.push(name);
+      }
+    }
+    if (type === 'materias') renderMaterias();
+    else renderProfesores();
+    updateBadges(); save();
+    showImportResult(type, imported.length, errors.length, errors);
+  };
+  reader.readAsText(file, 'UTF-8');
+  input.value = ''; // reset so same file can be re-imported
+}
+
+function showImportResult(type, ok, errCount, errors) {
+  const el = document.getElementById('import-result-' + type);
+  if (!el) return;
+  let html = '';
+  if (ok > 0)      html += `<div class="alert alert-success" style="margin:0 0 4px">✓ ${ok} registro${ok>1?'s':''} importado${ok>1?'s':''}.</div>`;
+  if (errCount > 0) html += `<div class="alert alert-warn" style="margin:0">⚠ ${errCount} fila${errCount>1?'s':''} con error: ${errors.slice(0,3).join(' · ')}${errors.length>3?' …':''}</div>`;
+  if (!ok && !errCount) html = '<div class="alert alert-warn" style="margin:0">No se importó ningún registro.</div>';
+  el.innerHTML = html;
+  setTimeout(() => { el.innerHTML = ''; }, 6000);
 }
 
 // ══════════════════════════════════════════════
